@@ -1769,6 +1769,7 @@
             if (!orderTableBody || !noOrdersMsgEl) return;
             let orders = getOrders();
             orderTableBody.innerHTML = ''; 
+            // Corrected: Assign to existing global variable, do not re-declare with let/const
             currentOrderFilter = filterStatus; 
             let filteredOrders = (filterStatus !== 'All') ? orders.filter(order => order.status === filterStatus) : orders;
             document.querySelectorAll('#order-filter-buttons .btn-filter').forEach(b => b.classList.toggle('active', b.dataset.status === filterStatus));
