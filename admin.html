@@ -375,8 +375,16 @@
                                 <input type="text" id="product-sizes" name="productSizes" class="form-input" placeholder="e.g., S, M, L, XL">
                             </div>
                             <div>
-                                <label for="product-colors" class="form-label">Available Colors (comma-separated)</label>
-                                <input type="text" id="product-colors" name="productColors" class="form-input" placeholder="e.g., Black, White, Red">
+                                <label for="product-sizes" class="form-label">Available Sizes (comma-separated)</label>
+                                <input type="text" id="product-sizes" name="productSizes" class="form-input" placeholder="e.g., S, M, L, XL">
+                            </div>
+                            <!-- Color Input Section Modified -->
+                            <div>
+                                <label class="form-label">Available Colors</label>
+                                <div id="product-colors-list-editor" class="space-y-2 mb-2">
+                                    <!-- Color entries will be dynamically added here by JS -->
+                                </div>
+                                <button type="button" id="add-product-color-btn" class="btn btn-secondary btn-sm w-full"><i class="fas fa-plus mr-2"></i>Add Color</button>
                             </div>
                         </div>
                         <!-- NEW: Size Guide Button -->
@@ -1108,10 +1116,14 @@
         const imagePreviewGrid = document.getElementById('image-preview-grid');
         const imageUploadTrigger = document.getElementById('image-upload-trigger');
         let currentProductImages = []; 
-        let currentSizeGuideData = null; // NEW: Holds size guide data for the current product being edited/created
+        let currentSizeGuideData = null;
         
         const productSizesInput = document.getElementById('product-sizes');
-        const productColorsInput = document.getElementById('product-colors');
+        // const productColorsInput = document.getElementById('product-colors'); // Old input, removed from HTML
+
+        // NEW: Color Management Elements
+        const productColorsListEditor = document.getElementById('product-colors-list-editor');
+        const addProductColorBtn = document.getElementById('add-product-color-btn');
         
         if (imageUploadTrigger && productImagesInput) { 
             imageUploadTrigger.addEventListener('click', () => productImagesInput.click()); 
@@ -1140,8 +1152,79 @@
             if (productFormSubmitBtn) productFormSubmitBtn.innerHTML = '<i class="fas fa-check-circle mr-2"></i>Confirm Deployment';
             if (toggleAddProductFormButton) toggleAddProductFormButton.innerHTML = '<i class="fas fa-plus-circle mr-2"></i> Deploy New Unit';
             if (productSizesInput) productSizesInput.value = ''; 
-            if (productColorsInput) productColorsInput.value = ''; 
+            renderColorEntries([]); // NEW: Clear dynamic color fields
         }
+
+        // NEW: Function to create a single color entry row
+        function createColorEntryRow(color = { name: '', hex: '' }) {
+            const entryDiv = document.createElement('div');
+            entryDiv.className = 'flex items-center space-x-2 product-color-entry';
+
+            const nameInput = document.createElement('input');
+            nameInput.type = 'text';
+            nameInput.className = 'form-input product-color-name flex-grow';
+            nameInput.placeholder = 'Color Name (e.g., Midnight Black)';
+            nameInput.value = color.name;
+
+            const hexInput = document.createElement('input');
+            hexInput.type = 'text'; // Keep as text for manual # input
+            hexInput.className = 'form-input product-color-hex w-32'; // Fixed width for hex
+            hexInput.placeholder = '#RRGGBB';
+            hexInput.value = color.hex;
+            hexInput.pattern = '^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$'; // Basic hex pattern
+
+            // Optional: Add a color picker input for convenience, visually hidden but linked
+            const colorPicker = document.createElement('input');
+            colorPicker.type = 'color';
+            colorPicker.className = 'product-color-picker w-8 h-8 p-0 border-none cursor-pointer'; // Small clickable swatch
+            colorPicker.value = color.hex || '#000000'; // Default to black if no hex
+            colorPicker.addEventListener('input', (e) => {
+                hexInput.value = e.target.value.toUpperCase();
+            });
+            hexInput.addEventListener('input', (e) => { // Sync picker if text hex changes
+                 if (/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/.test(e.target.value)) {
+                    colorPicker.value = e.target.value;
+                 }
+            });
+
+
+            const removeBtn = document.createElement('button');
+            removeBtn.type = 'button';
+            removeBtn.innerHTML = '<i class="fas fa-trash text-red-500"></i>';
+            removeBtn.className = 'btn-icon remove-color-entry-btn p-2'; // Adjust styling as needed
+            removeBtn.title = 'Remove Color';
+            removeBtn.addEventListener('click', () => {
+                entryDiv.remove();
+            });
+
+            entryDiv.appendChild(nameInput);
+            entryDiv.appendChild(hexInput);
+            entryDiv.appendChild(colorPicker);
+            entryDiv.appendChild(removeBtn);
+            return entryDiv;
+        }
+
+        // NEW: Function to render all color entries
+        function renderColorEntries(colorsArray = []) {
+            if (!productColorsListEditor) return;
+            productColorsListEditor.innerHTML = ''; // Clear existing entries
+            if (colorsArray && colorsArray.length > 0) {
+                colorsArray.forEach(color => {
+                    productColorsListEditor.appendChild(createColorEntryRow(color));
+                });
+            } else {
+                // Optionally add one empty row if there are no colors to start
+                // productColorsListEditor.appendChild(createColorEntryRow());
+            }
+        }
+
+        // NEW: Event listener for "Add Color" button
+        if (addProductColorBtn && productColorsListEditor) {
+            addProductColorBtn.addEventListener('click', () => {
+                productColorsListEditor.appendChild(createColorEntryRow());
+            });
+        }
+
 
         if (toggleAddProductFormButton && addProductFormContainer) {
             toggleAddProductFormButton.addEventListener('click', () => {
@@ -1265,10 +1348,11 @@
             } else if (productSizesInput) {
                 productSizesInput.value = '';
             }
-            if (productColorsInput && productToEdit.colors && Array.isArray(productToEdit.colors)) {
-                productColorsInput.value = productToEdit.colors.join(', ');
-            } else if (productColorsInput) {
-                productColorsInput.value = '';
+            // NEW: Populate color editor
+            if (productToEdit.colors && Array.isArray(productToEdit.colors)) {
+                renderColorEntries(productToEdit.colors);
+            } else {
+                renderColorEntries([]); // Clear if no colors or old format
             }
             
             currentProductImages = productToEdit.images ? [...productToEdit.images] : []; 
@@ -1366,15 +1450,42 @@
                 const productStock = parseInt(document.getElementById('product-stock').value);
 
                 if (!productName || !productPrice || isNaN(productStock) || productStock < 0) { 
-                    alert("Please fill all required product fields with valid data.");
+                    alert("Please fill all required product fields with valid data: Name, Price, Stock.");
                     return; 
                 }
 
                 const sizesString = productSizesInput ? productSizesInput.value : '';
-                const colorsString = productColorsInput ? productColorsInput.value : '';
-
                 const productSizesArray = sizesString.split(',').map(s => s.trim()).filter(s => s !== '');
-                const productColorsArray = colorsString.split(',').map(c => c.trim()).filter(c => c !== '');
+
+                // NEW: Collect color data from dynamic rows
+                const collectedColors = [];
+                const colorEntryRows = productColorsListEditor.querySelectorAll('.product-color-entry');
+                let colorsValid = true;
+                colorEntryRows.forEach(row => {
+                    const nameInput = row.querySelector('.product-color-name');
+                    const hexInput = row.querySelector('.product-color-hex');
+                    const name = nameInput ? nameInput.value.trim() : '';
+                    const hex = hexInput ? hexInput.value.trim().toUpperCase() : '';
+
+                    if (name && hex) {
+                        if (!/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/.test(hex)) {
+                            alert(`Invalid hex code format for color "${name}": ${hex}. Please use #RRGGBB or #RGB.`);
+                            if(hexInput) hexInput.focus();
+                            colorsValid = false;
+                            return;
+                        }
+                        collectedColors.push({ name, hex });
+                    } else if (name || hex) { // If one is filled but not the other
+                        alert('Both Color Name and Hex Code must be filled for each color entry, or leave both blank to ignore the row.');
+                        if (!name && nameInput) nameInput.focus();
+                        else if (!hex && hexInput) hexInput.focus();
+                        colorsValid = false;
+                        return;
+                    }
+                    // If both are blank, the row is just ignored, not added to collectedColors
+                });
+
+                if (!colorsValid) return; // Stop submission if color validation failed
                                 
                 const editingId = editingProductIdInput ? editingProductIdInput.value : '';
                 let products = getProducts();
@@ -1389,8 +1500,8 @@
                     status: document.getElementById('product-status').value,
                     images: [...currentProductImages],
                     sizes: productSizesArray, 
-                    colors: productColorsArray,
-                    sizeGuideData: currentSizeGuideData // NEW: Add size guide data
+                    colors: collectedColors, // MODIFIED: Use new collected colors
+                    sizeGuideData: currentSizeGuideData
                 };
 
                 if (editingId) { 
