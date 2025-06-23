@@ -1047,10 +1047,16 @@
             featuredSettings.dropSectionProductIds = productIdsForActivation || [];
             localStorage.setItem('triumindFeaturedProducts', JSON.stringify(featuredSettings));
             
+            // BEGIN MODIFICATION: Store the activated products specifically for this client
+            localStorage.setItem('triumindLastActivatedDropProducts', JSON.stringify(productIdsForActivation || []));
+            // END MODIFICATION
+
             // Dispatch storage events to notify other tabs/windows of the change.
             // This is good practice for multi-tab consistency.
             window.dispatchEvent(new StorageEvent('storage', { key: 'triumindProducts' }));
             window.dispatchEvent(new StorageEvent('storage', { key: 'triumindFeaturedProducts' }));
+            // Optionally, dispatch an event for 'triumindLastActivatedDropProducts' if other tabs need to react to it directly
+            window.dispatchEvent(new StorageEvent('storage', { key: 'triumindLastActivatedDropProducts' }));
         }
 
         function updateCountdownDisplay(targetTimestamp, elements) {
@@ -1088,6 +1094,9 @@
             // Check if there is a valid, future countdown defined.
             if (countdownSettings && parseInt(countdownSettings.target) > Date.now()) {
                 newTargetTimestamp = parseInt(countdownSettings.target);
+                // If a new future countdown is detected, clear the "last activated" products slate.
+                // This means we are now waiting for this new countdown.
+                localStorage.removeItem('triumindLastActivatedDropProducts');
             }
 
             // CORE FIX: Only modify the timer if the target is different from the one currently running.
@@ -1103,7 +1112,6 @@
             activeCountdownTarget = newTargetTimestamp;
             
             // Get references to all UI elements involved.
-            const featuredSettings = JSON.parse(localStorage.getItem('triumindFeaturedProducts')) || { dropSectionProductIds: [] };
             const fullSiteOverlay = document.getElementById('full-site-countdown-overlay');
             const countdownTitleEl = document.getElementById('section-countdown-title');
             const countdownSubtitleEl = document.getElementById('section-countdown-subtitle');
@@ -1146,16 +1154,28 @@
                 // CASE 2: No active countdown.
                 // Check if a countdown just expired.
                 if (countdownSettings && parseInt(countdownSettings.target) <= Date.now()) {
-                    handleCountdownEnd(countdownSettings);
+                    handleCountdownEnd(countdownSettings); // This will now also set 'triumindLastActivatedDropProducts'
                     localStorage.removeItem('triumindCountdownSettings');
                 }
 
                 // Now, display the "Drop Live" products or the default message.
-                // Re-read featuredSettings in case handleCountdownEnd just updated it.
-                const updatedFeaturedSettings = JSON.parse(localStorage.getItem('triumindFeaturedProducts')) || { dropSectionProductIds: [] };
-                 if (updatedFeaturedSettings.dropSectionProductIds && updatedFeaturedSettings.dropSectionProductIds.length > 0) {
+                let productsToShowForDrop = [];
+                // Prioritize showing products from the most recently activated drop on this client
+                const lastActivatedDropProducts = JSON.parse(localStorage.getItem('triumindLastActivatedDropProducts'));
+
+                if (lastActivatedDropProducts && Array.isArray(lastActivatedDropProducts) && lastActivatedDropProducts.length > 0) {
+                    productsToShowForDrop = lastActivatedDropProducts;
+                } else {
+                    // Fallback if 'triumindLastActivatedDropProducts' is not set
+                    const updatedFeaturedSettings = JSON.parse(localStorage.getItem('triumindFeaturedProducts')) || { dropSectionProductIds: [] };
+                    if (updatedFeaturedSettings.dropSectionProductIds && updatedFeaturedSettings.dropSectionProductIds.length > 0) {
+                        productsToShowForDrop = updatedFeaturedSettings.dropSectionProductIds;
+                    }
+                }
+
+                if (productsToShowForDrop.length > 0) {
                     newDropHeaderEl.classList.remove('hidden');
-                    displayDropProducts(updatedFeaturedSettings.dropSectionProductIds, sectionDropProductGridEl);
+                    displayDropProducts(productsToShowForDrop, sectionDropProductGridEl);
                 } else {
                      countdownTitleEl.classList.remove('hidden');
                      countdownSubtitleEl.classList.remove('hidden');
