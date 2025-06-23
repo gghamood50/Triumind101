@@ -1,0 +1,1846 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Triumind Admin Panel - Futura System</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" xintegrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.0/Sortable.min.js" xintegrity="sha512-Eezs+g9Lq4TCCq0wae01s97wKTRBAB8FWHTNS6VVNZwcEppaSoNbz+n+8hOEMYYpKgHJaLQJAYg9HbZOKhZaHg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <style>
+        :root {
+            --admin-bg-primary: #0D0D1A; --admin-bg-secondary: rgba(28, 20, 40, 0.75);
+            --admin-bg-tertiary: #1A1A33; --admin-text-primary: #E0E0FF;
+            --admin-text-secondary: #A0A0CC; --admin-accent-primary: #8B5CF6;
+            --admin-border-color: rgba(139, 92, 246, 0.4); --admin-shadow-color: rgba(139, 92, 246, 0.3);
+        }
+        body {
+            font-family: 'Inter', sans-serif; background-color: var(--admin-bg-primary);
+            color: var(--admin-text-primary); display: flex; height: 100vh; margin: 0; overflow: hidden;
+        }
+        .sidebar {
+            width: 260px; flex-shrink: 0; background-color: var(--admin-bg-secondary);
+            backdrop-filter: blur(12px) saturate(160%); -webkit-backdrop-filter: blur(12px) saturate(160%);
+            border-right: 1px solid var(--admin-border-color); box-shadow: 5px 0 20px -5px var(--admin-shadow-color);
+            padding: 1.5rem; display: flex; flex-direction: column; gap: 1rem;
+        }
+        .sidebar-header { font-size: 1.875rem; font-weight: 700; color: var(--admin-text-primary); margin-bottom: 2.5rem; text-align: center; }
+        .sidebar-header .subtitle { display: block; font-size: 0.875rem; font-weight: 400; color: var(--admin-text-secondary); letter-spacing: 0.1em; }
+        .sidebar-nav { display: flex; flex-direction: column; gap: 0.75rem; flex-grow: 1; }
+        .sidebar-footer { padding-top: 1rem; border-top: 1px solid var(--admin-border-color); }
+
+        .main-content-area { flex-grow: 1; background-color: var(--admin-bg-primary); display: flex; flex-direction: column; }
+        .admin-header-bar {
+            background-color: var(--admin-bg-tertiary); border-bottom: 1px solid var(--admin-border-color);
+            box-shadow: 0 3px 12px var(--admin-shadow-color); padding: 1.5rem;
+        }
+        .admin-header-bar .title { font-size: 1.5rem; font-weight: 600; color: var(--admin-text-primary); }
+        .admin-header-bar .user-info { font-size: 0.875rem; color: var(--admin-text-secondary); }
+        .admin-header-bar .avatar {
+            width: 2.5rem; height: 2.5rem; border-radius: 9999px; background-color: var(--admin-accent-primary);
+            display: flex; align-items: center; justify-content: center; color: var(--admin-text-primary);
+            font-weight: 700; font-size: 1.125rem; box-shadow: 0 0 8px var(--admin-shadow-color);
+        }
+        .page-content-wrapper { padding: 1.5rem; display: flex; flex-direction: column; gap: 2rem; overflow-y: auto; flex-grow: 1; }
+
+        .card {
+            background-color: var(--admin-bg-secondary); backdrop-filter: blur(10px) saturate(140%); -webkit-backdrop-filter: blur(10px) saturate(140%);
+            border-radius: 0.375rem; padding: 1.5rem; border: 1px solid var(--admin-border-color);
+            box-shadow: 0 0 18px -5px var(--admin-shadow-color); transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .card:hover { transform: translateY(-4px); box-shadow: 0 6px 28px -5px var(--admin-shadow-color); }
+        .card .card-title { font-size: 1.125rem; font-weight: 500; color: var(--admin-text-secondary); display: flex; align-items: center; }
+        .card .card-title i { margin-right: 0.5rem; color: var(--admin-accent-primary); }
+        .card .card-value { font-size: 1.875rem; font-weight: 700; margin-top: 0.5rem; color: var(--admin-accent-primary); }
+        .section-title { font-size: 1.5rem; font-weight: 600; margin-bottom: 1.5rem; }
+
+        .table th, .table td { padding: 0.85rem 1.15rem; border-bottom: 1px solid var(--admin-border-color); color: var(--admin-text-secondary); vertical-align: middle; }
+        .table th { background-color: rgba(139, 92, 246, 0.08); font-weight: 600; text-align: left; color: var(--admin-text-primary); text-transform: uppercase; font-size: 0.8rem; letter-spacing: 0.05em; }
+        .table tr:last-child td { border-bottom: none; }
+        .table tr:hover td { background-color: rgba(139, 92, 246, 0.04); }
+        .table img.product-thumbnail-small { width: 3.5rem; height: 3.5rem; border-radius: 0.125rem; object-fit: cover; border: 1px solid var(--admin-border-color); }
+        
+        .status-badge { padding: 0.25rem 0.75rem; font-size: 0.75rem; font-weight: 600; color: var(--admin-text-primary); border-radius: 9999px; box-shadow: 0 0 5px var(--admin-shadow-color); display: inline-block; }
+        .status-badge-active, .status-badge-completed { background-color: #22c55e; color: white; }
+        .status-badge-draft, .status-badge-cancelled { background-color: #6b7280; color: var(--admin-text-primary); }
+        .status-badge-processing { background-color: #3b82f6; color: white; }
+        .status-badge-shipped { background-color: #0ea5e9; color: white; }
+        .status-badge-refunded { background-color: #f59e0b; color: #4A2E06; }
+
+
+        .btn { padding: 0.6rem 1.2rem; border-radius: 0.25rem; font-weight: 600; transition: all 0.2s ease; border: 1px solid transparent; text-transform: uppercase; letter-spacing: 0.05em; box-shadow: 0 2px 5px rgba(0,0,0,0.2); cursor: pointer; }
+        .btn-primary { background-color: var(--admin-accent-primary); color: var(--admin-text-primary); border-color: var(--admin-accent-primary); box-shadow: 0 0 10px var(--admin-shadow-color); }
+        .btn-primary:hover { background-color: transparent; color: var(--admin-accent-primary); border-color: var(--admin-accent-primary); box-shadow: 0 0 15px var(--admin-shadow-color), inset 0 0 8px var(--admin-shadow-color); }
+        .btn-secondary { background-color: var(--admin-bg-tertiary); color: var(--admin-text-primary); border: 1px solid var(--admin-border-color); }
+        .btn-secondary:hover { background-color: var(--admin-accent-primary); color: var(--admin-text-primary); border-color: var(--admin-accent-primary); }
+        .btn-sm { padding: 0.4rem 0.8rem; font-size: 0.875rem; }
+        .btn-danger { background-color: #ef4444; color: white; }
+        .btn-danger:hover { background-color: #dc2626; }
+        .btn-success { background-color: #22c55e; color: white; }
+        .btn-success:hover { background-color: #16a34a; }
+        .btn-filter { background-color: var(--admin-bg-tertiary); color: var(--admin-text-secondary); border: 1px solid var(--admin-border-color); padding: 0.5rem 1rem; font-size: 0.875rem; }
+        .btn-filter:hover, .btn-filter.active { background-color: var(--admin-accent-primary); color: var(--admin-text-primary); border-color: var(--admin-accent-primary); box-shadow: 0 0 8px var(--admin-shadow-color); }
+
+
+        .form-input, .form-select, .form-textarea { background-color: var(--admin-bg-tertiary); border: 1px solid var(--admin-border-color); color: var(--admin-text-primary); padding: 0.6rem 0.85rem; border-radius: 0.25rem; width: 100%; transition: border-color 0.2s ease, box-shadow 0.2s ease; }
+        .form-input:focus, .form-select:focus, .form-textarea:focus { outline: none; border-color: var(--admin-accent-primary); box-shadow: 0 0 0 3px var(--admin-shadow-color); }
+        .form-label { color: var(--admin-text-secondary); font-size: 0.9rem; margin-bottom: 0.3rem; display: block; }
+        .form-radio-group { display: flex; gap: 1rem; margin-top: 0.5rem; }
+        .form-radio-label { display: flex; align-items: center; gap: 0.5rem; color: var(--admin-text-secondary); font-size: 0.9rem; cursor: pointer; }
+        .form-radio-input { accent-color: var(--admin-accent-primary); width: 1em; height: 1em; cursor: pointer; }
+        .form-checkbox-label { display: flex; align-items: center; gap: 0.5rem; color: var(--admin-text-secondary); font-size: 0.9rem; cursor: pointer; padding: 0.3rem 0; }
+        .form-checkbox-input { accent-color: var(--admin-accent-primary); width: 1em; height: 1em; cursor: pointer; }
+
+
+        .nav-link { display: flex; align-items: center; padding: 0.85rem 1.5rem; color: var(--admin-text-secondary); border-radius: 0.25rem; transition: background-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease; border-left: 3px solid transparent; text-decoration: none; cursor: pointer; }
+        .nav-link:hover { background-color: rgba(139, 92, 246, 0.15); color: var(--admin-accent-primary); transform: translateX(5px); border-left-color: var(--admin-accent-primary); }
+        .nav-link.active { background-color: var(--admin-accent-primary); color: var(--admin-text-primary); font-weight: 600; border-left-color: var(--admin-accent-primary); box-shadow: 0 0 12px var(--admin-shadow-color); }
+        .nav-link.active:hover { transform: translateX(0); }
+        .nav-link i { margin-right: 0.85rem; width: 20px; text-align: center; transition: transform 0.2s ease; }
+        .nav-link:hover i { transform: scale(1.1); }
+        .nav-link.active i { color: var(--admin-text-primary); }
+        
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: var(--admin-bg-tertiary); }
+        ::-webkit-scrollbar-thumb { background-color: var(--admin-accent-primary); border-radius: 4px; border: 2px solid var(--admin-bg-tertiary); }
+        ::-webkit-scrollbar-thumb:hover { background-color: #7C3AED; }
+        .text-glow { text-shadow: 0 0 10px var(--admin-shadow-color), 0 0 20px rgba(139, 92, 246, 0.1); }
+
+        #add-product-form-container { max-height: 0; overflow: hidden; transition: max-height 0.7s ease-in-out, padding 0.7s ease-in-out; padding: 0 1.5rem; }
+        #add-product-form-container.open { max-height: 2200px; padding: 1.5rem; margin-bottom: 1.5rem; }
+
+        .image-upload-container { border: 2px dashed var(--admin-border-color); padding: 1rem; border-radius: 0.25rem; text-align: center; cursor: pointer; transition: border-color 0.2s ease; }
+        .image-upload-container:hover { border-color: var(--admin-accent-primary); }
+        .image-preview-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 1rem; margin-top: 1rem; }
+        .image-preview-item { position: relative; border: 1px solid var(--admin-border-color); border-radius: 0.25rem; overflow: hidden; aspect-ratio: 1 / 1; }
+        .image-preview-item img { width: 100%; height: 100%; object-fit: cover; display: block; }
+        .image-preview-item .remove-image-btn {
+            position: absolute; top: 4px; right: 4px; background-color: rgba(239, 68, 68, 0.8); 
+            color: white; border: none; border-radius: 50%; width: 24px; height: 24px;
+            display: flex; align-items: center; justify-content: center; font-size: 0.8rem; cursor: pointer;
+            transition: background-color 0.2s ease;
+        }
+        .image-preview-item .remove-image-btn:hover { background-color: #dc2626; }
+        .image-preview-item .set-primary-btn {
+            position: absolute; bottom: 4px; left: 4px; background-color: rgba(139, 92, 246, 0.8); 
+            color: white; border: none; border-radius: 0.25rem; padding: 0.25rem 0.5rem;
+            font-size: 0.7rem; cursor: pointer; transition: background-color 0.2s ease;
+        }
+        .image-preview-item .set-primary-btn:hover { background-color: var(--admin-accent-primary); }
+        .image-preview-item.is-primary { border: 2px solid var(--admin-accent-primary); box-shadow: 0 0 8px var(--admin-shadow-color); }
+        .image-preview-item.is-primary .set-primary-btn { background-color: var(--admin-accent-primary); font-weight: bold; }
+        .sortable-ghost { opacity: 0.4; background: var(--admin-bg-tertiary); } 
+
+        .toggle-switch-label { display: flex; align-items: center; justify-content: space-between; padding: 0.75rem 0; border-bottom: 1px solid var(--admin-border-color); cursor: pointer; }
+        .toggle-switch-label:last-child { border-bottom: none; }
+        .toggle-switch { position: relative; display: inline-block; width: 50px; height: 28px; }
+        .toggle-switch input { opacity: 0; width: 0; height: 0; }
+        .toggle-slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: var(--admin-bg-tertiary); transition: .4s; border-radius: 28px; border: 1px solid var(--admin-border-color); }
+        .toggle-slider:before { position: absolute; content: ""; height: 20px; width: 20px; left: 3px; bottom: 3px; background-color: var(--admin-text-secondary); transition: .4s; border-radius: 50%; }
+        input:checked + .toggle-slider { background-color: var(--admin-accent-primary); border-color: var(--admin-accent-primary); }
+        input:checked + .toggle-slider:before { transform: translateX(22px); background-color: white; }
+
+        .admin-modal-overlay {
+            position: fixed; inset: 0; background-color: rgba(0,0,0,0.8);
+            z-index: 1000; display: none; align-items: center; justify-content: center;
+            backdrop-filter: blur(5px); -webkit-backdrop-filter: blur(5px);
+        }
+        .admin-modal-overlay.open { display: flex; }
+        .admin-modal-content {
+            background-color: var(--admin-bg-secondary); color: var(--admin-text-primary);
+            padding: 1.5rem; 
+            border-radius: 0.5rem; width: 90%; max-width: 700px;
+            max-height: 85vh; 
+            border: 1px solid var(--admin-border-color);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            display: flex; 
+            flex-direction: column; 
+        }
+        .admin-modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; border-bottom: 1px solid var(--admin-border-color); padding-bottom: 0.75rem; flex-shrink: 0;}
+        .admin-modal-title { font-size: 1.5rem; font-weight: 600; color: var(--admin-accent-primary); }
+        .admin-modal-close-btn { background: none; border: none; color: var(--admin-text-secondary); font-size: 1.75rem; cursor: pointer; transition: color 0.2s; }
+        .admin-modal-close-btn:hover { color: var(--admin-text-primary); }
+        .admin-modal-body { 
+            overflow-y: auto; 
+            padding-right: 0.5rem; 
+            margin-bottom: 1rem; 
+            flex-grow: 1; 
+        }
+        .admin-modal-footer {
+            padding-top: 1rem;
+            border-top: 1px solid var(--admin-border-color);
+            display: flex;
+            justify-content: flex-end; 
+            flex-shrink: 0;
+        }
+        .order-detail-section { margin-bottom: 1.5rem; }
+        .order-detail-section h4 { font-size: 1.1rem; font-weight: 500; color: var(--admin-text-secondary); margin-bottom: 0.5rem; border-bottom: 1px solid var(--admin-border-color); padding-bottom: 0.3rem; }
+        .order-detail-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1rem; }
+        .order-detail-item p { margin-bottom: 0.3rem; font-size: 0.9rem; }
+        .order-detail-item p strong { color: var(--admin-text-primary); font-weight: 500; }
+        .order-items-table { width: 100%; margin-top: 0.5rem; border-collapse: collapse; }
+        .order-items-table th, .order-items-table td { text-align: left; padding: 0.5rem; border-bottom: 1px solid var(--admin-border-color); font-size: 0.9rem; }
+        .order-items-table th { color: var(--admin-text-primary); }
+        .order-items-table img { width: 40px; height: auto; border-radius: 0.25rem; margin-right: 0.5rem; vertical-align: middle;}
+        #newsletter-emails-list { list-style: none; padding: 0; }
+        #newsletter-emails-list li { padding: 0.5rem 0; border-bottom: 1px solid var(--admin-border-color); color: var(--admin-text-secondary); }
+        #newsletter-emails-list li:last-child { border-bottom: none; }
+
+        /* Styles for Story Management Section */
+        .story-slot {
+            border: 1px solid var(--admin-border-color);
+            border-radius: 0.375rem;
+            padding: 1rem;
+            background-color: rgba(255,255,255,0.03);
+        }
+        .story-image-preview-container {
+            width: 100%;
+            height: 200px;
+            background-color: var(--admin-bg-tertiary);
+            border-radius: 0.25rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 0.75rem;
+            border: 1px dashed var(--admin-border-color);
+            overflow: hidden;
+        }
+        .story-image-preview {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+            display: block;
+        }
+        .story-image-input {
+            display: none;
+        }
+        .review-stars { color: #eab308; }
+        
+        .checkbox-list-container {
+            max-height: 12rem;
+            overflow-y: auto;
+            padding: 0.75rem;
+            background-color: var(--admin-bg-tertiary);
+            border: 1px solid var(--admin-border-color);
+            border-radius: 0.375rem;
+        }
+        .checkbox-list-container > * + * {
+            margin-top: 0.5rem;
+        }
+
+        /* NEW: Size Guide Editor Styles */
+        #size-guide-modal-content {
+            max-width: 90vw;
+            width: 1200px;
+        }
+        .size-guide-editor-controls {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
+        }
+        .size-guide-editor-table-wrapper {
+            overflow: auto;
+            max-height: 60vh;
+        }
+        .size-guide-editor-table {
+            width: 100%;
+            border-collapse: collapse;
+            table-layout: fixed;
+        }
+        .size-guide-editor-table th, .size-guide-editor-table td {
+            border: 1px solid var(--admin-border-color);
+            padding: 0.75rem;
+            position: relative;
+            color: var(--admin-text-primary);
+        }
+        .size-guide-editor-table th {
+            background-color: rgba(139, 92, 246, 0.1);
+        }
+        .size-guide-editor-table [contenteditable="true"] {
+            outline: 2px dashed transparent;
+            transition: outline-color 0.2s;
+            min-width: 50px;
+        }
+        .size-guide-editor-table [contenteditable="true"]:focus {
+            outline-color: var(--admin-accent-primary);
+            background-color: var(--admin-bg-tertiary);
+        }
+        .size-guide-remove-btn {
+            position: absolute;
+            background-color: #ef4444;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 22px;
+            height: 22px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            opacity: 0;
+            transition: opacity 0.2s;
+            font-size: 0.7rem;
+        }
+        .size-guide-remove-col-btn { top: -11px; right: -11px; }
+        .size-guide-remove-row-btn { top: 50%; transform: translateY(-50%); left: -11px; }
+        .size-guide-editor-table th:hover .size-guide-remove-col-btn,
+        .size-guide-editor-table td:hover .size-guide-remove-row-btn {
+            opacity: 1;
+        }
+        .size-guide-remove-btn:hover { background-color: #dc2626; }
+
+    </style>
+</head>
+<body>
+    <aside class="sidebar">
+        <div class="sidebar-header text-glow">TRIUMIND <span class="subtitle">SYSTEM</span></div>
+        <nav class="sidebar-nav">
+            <a href="#dashboard" class="nav-link active" data-target="dashboard-section"><i class="fas fa-solar-panel"></i> Dashboard</a>
+            <a href="#products" class="nav-link" data-target="products-section"><i class="fas fa-cubes-stacked"></i> Products</a>
+            <a href="#reviews-admin" class="nav-link" data-target="reviews-admin-section"><i class="fas fa-star"></i> Reviews</a>
+            <a href="#messages-admin" class="nav-link" data-target="messages-admin-section"><i class="fas fa-envelope"></i> Messages</a>
+            <a href="#orders" class="nav-link" data-target="orders-section"><i class="fas fa-file-invoice-dollar"></i> Orders</a>
+            <a href="#drops" class="nav-link" data-target="drops-section"><i class="fas fa-satellite-dish"></i> Drops & Countdown</a>
+            <a href="#stories-admin" class="nav-link" data-target="stories-admin-section"><i class="fas fa-book-open"></i> Stories</a>
+            <a href="#newsletter-admin" class="nav-link" data-target="newsletter-admin-section"><i class="fas fa-envelope-open-text"></i> Newsletter</a>
+            <a href="#sections" class="nav-link" data-target="sections-section"><i class="fas fa-eye"></i> Customize Sections</a>
+            <a href="#settings" class="nav-link" data-target="settings-section"><i class="fas fa-cogs"></i> Site Settings</a>
+        </nav>
+        <div class="sidebar-footer">
+             <a href="index.html" id="admin-logout-button" class="nav-link"><i class="fas fa-power-off"></i> Logout (To Site)</a>
+        </div>
+    </aside>
+    <main class="main-content-area">
+        <header class="admin-header-bar">
+            <div class="flex justify-between items-center">
+                <h1 id="current-section-title" class="title text-glow">Dashboard</h1>
+                <div class="flex items-center space-x-4"><span class="user-info">Operator: Unit 734</span><div class="avatar">A</div></div>
+            </div>
+        </header>
+        <div class="page-content-wrapper">
+            <section id="dashboard-section" class="admin-section">
+                <h2 class="section-title text-glow">System Overview</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                    <div class="card">
+                        <h3 class="card-title"><i class="fas fa-chart-line"></i>Total Revenue</h3>
+                        <p id="dashboard-total-revenue" class="card-value">$0.00</p>
+                    </div>
+                    <div class="card">
+                        <h3 class="card-title"><i class="fas fa-clipboard-list"></i>Active Orders</h3>
+                        <p id="dashboard-active-orders" class="card-value">0</p>
+                    </div>
+                    <div class="card">
+                        <h3 class="card-title"><i class="fas fa-boxes-stacked"></i>Product Units</h3>
+                        <p id="dashboard-product-count" class="card-value">0</p>
+                    </div>
+                    <div class="card">
+                        <h3 class="card-title"><i class="fas fa-users"></i>Network Pings (24h)</h3>
+                        <p class="card-value">0</p> 
+                    </div>
+                </div>
+            </section>
+
+            <section id="products-section" class="admin-section hidden">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="section-title text-glow">Product Matrix</h2>
+                    <button id="toggle-add-product-form" class="btn btn-primary"><i class="fas fa-plus-circle mr-2"></i> Deploy New Unit</button>
+                </div>
+                <div id="add-product-form-container" class="card">
+                    <h3 id="product-form-title" class="text-xl font-medium mb-6 text-[var(--admin-accent-primary)]">New Product Deployment</h3>
+                    <form id="product-form" class="space-y-5">
+                        <input type="hidden" id="editing-product-id" value=""> 
+                        <div><label for="product-name" class="form-label">Product Designation</label><input type="text" id="product-name" name="productName" class="form-input" required></div>
+                        <div><label for="product-description" class="form-label">Tactical Brief (Description)</label><textarea id="product-description" name="productDescription" rows="3" class="form-textarea" required></textarea></div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div><label for="product-price" class="form-label">Credit Value (Price)</label><input type="number" id="product-price" name="productPrice" class="form-input" step="0.01" min="0" required></div>
+                            <div><label for="product-sku" class="form-label">SKU / Unit ID</label><input type="text" id="product-sku" name="productSku" class="form-input"></div>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div><label for="product-stock" class="form-label">Stock Level</label><input type="number" id="product-stock" name="productStock" class="form-input" min="0" value="0" required></div>
+                            <div>
+                                <label for="product-status" class="form-label">Deployment Status</label>
+                                <select id="product-status" name="productStatus" class="form-select">
+                                    <option value="Active">Active (Online)</option>
+                                    <option value="Draft">Draft (Offline)</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label for="product-sizes" class="form-label">Available Sizes (comma-separated)</label>
+                                <input type="text" id="product-sizes" name="productSizes" class="form-input" placeholder="e.g., S, M, L, XL">
+                            </div>
+                            <div>
+                                <label for="product-colors" class="form-label">Available Colors (comma-separated)</label>
+                                <input type="text" id="product-colors" name="productColors" class="form-input" placeholder="e.g., Black, White, Red">
+                            </div>
+                        </div>
+                        <!-- NEW: Size Guide Button -->
+                        <div>
+                            <label class="form-label">Custom Size Guide</label>
+                            <button type="button" id="open-size-guide-editor" class="btn btn-secondary w-full"><i class="fas fa-ruler-combined mr-2"></i>Create / Edit Size Guide</button>
+                            <p id="size-guide-status" class="text-xs text-[var(--admin-text-secondary)] mt-2">No size guide created for this product yet.</p>
+                        </div>
+                        <div>
+                            <label class="form-label">Product Visuals (Drag to reorder, first is primary by default)</label>
+                            <div id="image-upload-trigger" class="image-upload-container mb-2"><i class="fas fa-cloud-upload-alt text-3xl text-[var(--admin-text-secondary)]"></i><p class="text-sm text-[var(--admin-text-secondary)] mt-1">Click or Drag & Drop Images Here</p></div>
+                            <input type="file" id="product-images-input" multiple accept="image/jpeg, image/png, image/webp, image/gif" class="hidden">
+                            <div id="image-preview-grid" class="image-preview-grid"></div>
+                            <small class="text-xs text-[var(--admin-text-secondary)] mt-2 block">Max 5 images. First image is primary. Stored locally (Base64).</small>
+                        </div>
+                        <div class="flex justify-end space-x-3 pt-3">
+                            <button type="button" id="cancel-add-product" class="btn btn-secondary">Abort</button>
+                            <button type="submit" id="product-form-submit-btn" class="btn btn-primary"><i class="fas fa-check-circle mr-2"></i>Confirm Deployment</button>
+                        </div>
+                    </form>
+                </div>
+                <div class="card overflow-x-auto mt-6">
+                    <table class="w-full table">
+                        <thead><tr><th>Thumbnail</th><th>Designation</th><th>SKU</th><th>Credits</th><th>Stock Level</th><th>Status</th><th>Operations</th></tr></thead>
+                        <tbody id="product-table-body"></tbody>
+                    </table>
+                    <p id="no-products-message" class="text-center py-4 text-gray-500 hidden">No product units deployed yet.</p>
+                </div>
+            </section>
+            
+            <section id="reviews-admin-section" class="admin-section hidden">
+                <h2 class="section-title text-glow">Review Management</h2>
+                <div class="card overflow-x-auto">
+                    <table class="w-full table">
+                        <thead>
+                            <tr>
+                                <th>Author</th>
+                                <th>Rating</th>
+                                <th>Review</th>
+                                <th>Product</th>
+                                <th>Feature on Home</th>
+                                <th>Operations</th>
+                            </tr>
+                        </thead>
+                        <tbody id="reviews-table-body">
+                        </tbody>
+                    </table>
+                    <p id="no-reviews-admin-message" class="text-center py-4 text-gray-500 hidden">No reviews submitted yet.</p>
+                </div>
+            </section>
+            
+            <section id="messages-admin-section" class="admin-section hidden">
+                 <h2 class="section-title text-glow">Contact Messages</h2>
+                 <div class="card overflow-x-auto">
+                     <table class="w-full table">
+                        <thead>
+                            <tr>
+                                <th>Timestamp</th>
+                                <th>From</th>
+                                <th>Message</th>
+                                <th>Operations</th>
+                            </tr>
+                        </thead>
+                        <tbody id="messages-table-body">
+                        </tbody>
+                    </table>
+                    <p id="no-messages-admin-message" class="text-center py-4 text-gray-500 hidden">No messages received yet.</p>
+                </div>
+            </section>
+
+            <section id="orders-section" class="admin-section hidden">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="section-title text-glow mb-0">Order Transmissions</h2>
+                    <div id="order-filter-buttons" class="space-x-2">
+                        <button class="btn btn-filter active" data-status="All">All</button>
+                        <button class="btn btn-filter" data-status="Processing">Processing</button>
+                        <button class="btn btn-filter" data-status="Completed">Completed</button>
+                    </div>
+                </div>
+                <div class="card overflow-x-auto">
+                     <table class="w-full table">
+                        <thead>
+                            <tr>
+                                <th>Transmission ID</th>
+                                <th>Customer</th>
+                                <th>Timestamp</th>
+                                <th>Value</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="order-table-body">
+                            </tbody>
+                    </table>
+                    <p id="no-orders-message" class="text-center py-4 text-gray-500 hidden">No order transmissions received yet.</p>
+                </div>
+            </section>
+
+            <section id="drops-section" class="admin-section hidden">
+                <h2 class="section-title text-glow">Temporal Control: Drops</h2>
+                <div class="card">
+                    <h3 class="text-xl font-medium mb-4 text-[var(--admin-accent-primary)]">Synchronize Next Drop Event</h3>
+                    <form class="space-y-5" id="adminDropForm">
+                        <div><label class="form-label">Countdown Mode</label><div class="form-radio-group"><label class="form-radio-label"><input type="radio" name="countdownMode" value="section" class="form-radio-input" checked> Section Display</label><label class="form-radio-label"><input type="radio" name="countdownMode" value="takeover" class="form-radio-input"> Full Site Takeover</label></div></div>
+                        <div><label for="drop-date" class="form-label">Target Date (UTC)</label><input type="date" id="drop-date" name="drop-date" class="form-input" required></div>
+                        <div><label for="drop-time" class="form-label">Target Time (UTC)</label><input type="time" id="drop-time" name="drop-time" class="form-input" required></div>
+                        
+                        <div>
+                            <label class="form-label">Products to Activate on Drop (Required)</label>
+                            <div id="drop-activation-products-checkbox-container" class="checkbox-list-container">
+                                <!-- Checkboxes will be injected here by JS -->
+                            </div>
+                            <small class="text-xs text-[var(--admin-text-secondary)] mt-1 block">Select one or more DRAFT products to make Active when the countdown ends.</small>
+                        </div>
+
+                        <div>
+                            <label for="also-feature-in-gear" class="form-checkbox-label">
+                                <input type="checkbox" id="also-feature-in-gear" name="alsoFeatureInGear" class="form-checkbox-input">
+                                <span>Also feature these products in the main 'Gear' section</span>
+                            </label>
+                        </div>
+
+                        <div id="drop-form-feedback" class="text-red-400 text-sm hidden"></div>
+                        <div><button type="submit" class="btn btn-primary w-full"><i class="fas fa-satellite-dish mr-2"></i>Initiate Synchronization</button></div>
+                    </form>
+                    <div class="mt-8 pt-6 border-t border-[var(--admin-border-color)]"><h4 class="text-lg font-medium mb-2 text-gray-400">Current Event Horizon:</h4><p id="current-countdown-display" class="text-[var(--admin-accent-primary)] text-xl font-semibold">T-Minus: Not Set</p></div>
+                </div>
+            </section>
+
+            <section id="stories-admin-section" class="admin-section hidden">
+                <h2 class="section-title text-glow">Manage Stories</h2>
+                <div class="card">
+                    <p class="text-sm text-[var(--admin-text-secondary)] mb-6">Upload images for the four story slots displayed on the main page. If an image is removed, the corresponding story card will not be shown. Attach a message to each story.</p>
+                    <div id="story-slots-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                        <!-- Story slots will be injected here by JavaScript -->
+                    </div>
+                    <div class="mt-6 text-center">
+                        <button id="save-stories-changes" class="btn btn-primary"><i class="fas fa-save mr-2"></i>Save Story Changes</button>
+                    </div>
+                </div>
+            </section>
+
+            <section id="newsletter-admin-section" class="admin-section hidden">
+                <h2 class="section-title text-glow">Newsletter Subscriptions</h2>
+                <div class="card">
+                    <h3 class="text-xl font-medium mb-4 text-[var(--admin-accent-primary)]">Collected Emails</h3>
+                    <div id="newsletter-emails-container" class="max-h-96 overflow-y-auto">
+                        <ul id="newsletter-emails-list">
+                            </ul>
+                        <p id="no-newsletter-emails" class="text-center text-[var(--admin-text-secondary)] hidden">No emails subscribed to the newsletter yet.</p>
+                    </div>
+                </div>
+            </section>
+            
+            <section id="sections-section" class="admin-section hidden">
+                <h2 class="section-title text-glow">Customize Site Sections</h2>
+                <div class="card mb-6">
+                    <form id="section-visibility-form" class="space-y-3">
+                        <h3 class="text-xl font-medium mb-3 text-[var(--admin-accent-primary)]">Section Visibility</h3>
+                        <p class="text-sm text-[var(--admin-text-secondary)] mb-4">Control which sections appear on your storefront. The Hero section is always visible.</p>
+                        <label class="toggle-switch-label" for="countdownVisible"><span>Countdown Section</span><div class="toggle-switch"><input type="checkbox" id="countdownVisible" name="countdownVisible"><span class="toggle-slider"></span></div></label>
+                        <label class="toggle-switch-label" for="gearVisible"><span>Gear Section</span><div class="toggle-switch"><input type="checkbox" id="gearVisible" name="gearVisible"><span class="toggle-slider"></span></div></label>
+                        <label class="toggle-switch-label" for="storiesVisible"><span>Stories Section</span><div class="toggle-switch"><input type="checkbox" id="storiesVisible" name="storiesVisible"><span class="toggle-slider"></span></div></label>
+                        <label class="toggle-switch-label" for="reviewsVisible"><span>Community Reviews Section</span><div class="toggle-switch"><input type="checkbox" id="reviewsVisible" name="reviewsVisible"><span class="toggle-slider"></span></div></label>
+                        <label class="toggle-switch-label" for="newsletterVisible"><span>Newsletter Signup Section</span><div class="toggle-switch"><input type="checkbox" id="newsletterVisible" name="newsletterVisible"><span class="toggle-slider"></span></div></label>
+                        <label class="toggle-switch-label" for="contactVisible"><span>Contact Section</span><div class="toggle-switch"><input type="checkbox" id="contactVisible" name="contactVisible"><span class="toggle-slider"></span></div></label>
+                        </form>
+                </div>
+
+                <div class="card">
+                    <form id="featured-products-form" class="space-y-5">
+                        <h3 class="text-xl font-medium mb-3 text-[var(--admin-accent-primary)]">Featured Product Display</h3>
+                        
+                        <div>
+                            <label class="form-label">Main Gear Section Products (Max 3)</label>
+                            <div id="featured-gear-checkbox-container" class="checkbox-list-container">
+                                <!-- Active product checkboxes will be injected here -->
+                            </div>
+                            <small class="text-xs text-[var(--admin-text-secondary)] mt-1 block">Select up to 3 Active products.</small>
+                        </div>
+
+                        <div>
+                            <label class="form-label">Products to Display on Drop Event</label>
+                            <div id="featured-drop-checkbox-container" class="checkbox-list-container">
+                                <!-- Active product checkboxes for drop events will be injected here -->
+                            </div>
+                            <small class="text-xs text-[var(--admin-text-secondary)] mt-1 block">Select Active products to show when a countdown ends. This populates the "New Drop" section on the home page.</small>
+                        </div>
+                    </form>
+                </div>
+                <div class="pt-6 text-center">
+                    <button id="save-customization-settings" type="button" class="btn btn-primary w-full md:w-auto"><i class="fas fa-save mr-2"></i>Save All Customization Settings</button>
+                </div>
+            </section>
+
+            <section id="settings-section" class="admin-section hidden">
+                <h2 class="section-title text-glow">System Configuration</h2>
+                <div class="card">
+                    <form class="space-y-5">
+                        <div><label for="site-name" class="form-label">System Codename</label><input type="text" id="site-name" name="site-name" class="form-input" value="Triumind Collective OS"></div>
+                        <div><label for="contact-email" class="form-label">Comms Channel (Public)</label><input type="email" id="contact-email" name="contact-email" class="form-input" value="operator@triumind.co"></div>
+                        <div class="pt-3"><button type="submit" class="btn btn-primary w-full"><i class="fas fa-save mr-2"></i>Commit Changes</button></div>
+                    </form>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <!-- Order Detail Modal -->
+    <div id="order-detail-modal-overlay" class="admin-modal-overlay">
+        <div class="admin-modal-content">
+            <div class="admin-modal-header">
+                <h3 id="order-detail-modal-title" class="admin-modal-title">Order Details</h3>
+                <button id="order-detail-modal-close-btn" class="admin-modal-close-btn">&times;</button>
+            </div>
+            <div class="admin-modal-body">
+                <div class="order-detail-section">
+                    <h4>Customer Information</h4>
+                    <div class="order-detail-grid">
+                        <div class="order-detail-item"><p><strong>Name:</strong> <span id="modal-customer-name">N/A</span></p></div>
+                        <div class="order-detail-item"><p><strong>Email:</strong> <span id="modal-customer-email">N/A</span></p></div>
+                        <div class="order-detail-item"><p><strong>Phone:</strong> <span id="modal-customer-phone">N/A</span></p></div>
+                        <div class="order-detail-item md:col-span-2"><p><strong>Address:</strong> <span id="modal-customer-address">N/A</span></p></div>
+                    </div>
+                </div>
+                <div class="order-detail-section">
+                    <h4>Order Summary</h4>
+                     <div class="order-detail-grid">
+                        <div class="order-detail-item"><p><strong>Order ID:</strong> <span id="modal-order-id">N/A</span></p></div>
+                        <div class="order-detail-item"><p><strong>Date:</strong> <span id="modal-order-date">N/A</span></p></div>
+                        <div class="order-detail-item"><p><strong>Total:</strong> <span id="modal-order-total">N/A</span></p></div>
+                        <div class="order-detail-item"><p><strong>Status:</strong> <span id="modal-order-status" class="status-badge">N/A</span></p></div>
+                    </div>
+                </div>
+                <div class="order-detail-section">
+                    <h4>Items Ordered</h4>
+                    <table class="order-items-table">
+                        <thead>
+                            <tr>
+                                <th></th>
+                                <th>Product</th>
+                                <th>Options</th>
+                                <th>Qty</th>
+                                <th>Price</th>
+                                <th>Subtotal</th>
+                            </tr>
+                        </thead>
+                        <tbody id="modal-order-items-table-body">
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="admin-modal-footer">
+                 <button id="mark-order-done-btn" class="btn btn-success hidden"><i class="fas fa-check-circle mr-2"></i>Mark as Done</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- NEW: Size Guide Editor Modal -->
+    <div id="size-guide-editor-modal-overlay" class="admin-modal-overlay">
+        <div id="size-guide-modal-content" class="admin-modal-content">
+            <div class="admin-modal-header">
+                <h3 class="admin-modal-title">Size Guide Editor</h3>
+                <button id="size-guide-editor-close-btn" class="admin-modal-close-btn">&times;</button>
+            </div>
+            <div class="admin-modal-body">
+                <div class="size-guide-editor-controls">
+                    <button id="sg-add-row" class="btn btn-secondary btn-sm"><i class="fas fa-plus mr-2"></i>Add Row</button>
+                    <button id="sg-add-col" class="btn btn-secondary btn-sm"><i class="fas fa-plus mr-2"></i>Add Column</button>
+                    <p class="text-sm text-[var(--admin-text-secondary)] self-center">Click on any cell to edit its content.</p>
+                </div>
+                <div class="size-guide-editor-table-wrapper">
+                    <table id="size-guide-editor-table" class="size-guide-editor-table">
+                        <!-- Table content will be generated by JS -->
+                    </table>
+                </div>
+            </div>
+            <div class="admin-modal-footer">
+                <div class="flex justify-end gap-3">
+                    <button id="size-guide-cancel-btn" class="btn btn-secondary">Cancel</button>
+                    <button id="size-guide-save-btn" class="btn btn-primary"><i class="fas fa-save mr-2"></i>Save Guide</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <script>
+        // Admin Panel Navigation
+        const adminNavLinks = document.querySelectorAll('.sidebar .nav-link');
+        const adminSections = document.querySelectorAll('.admin-section');
+        const adminCurrentSectionTitle = document.getElementById('current-section-title');
+
+        function showAdminSection(targetId) {
+            adminSections.forEach(section => section.classList.add('hidden'));
+            const sectionToShow = document.getElementById(targetId);
+            if (sectionToShow) {
+                sectionToShow.classList.remove('hidden');
+                // Load data for specific sections when they are shown
+                if (targetId === 'newsletter-admin-section') { 
+                    loadNewsletterEmails();
+                }
+                if (targetId === 'stories-admin-section') { 
+                    initializeStorySlots();
+                }
+                if (targetId === 'drops-section') { 
+                    populateDropActivationProductSelector(); 
+                    loadCurrentCountdownSettings();
+                }
+                if (targetId === 'sections-section') {
+                    loadSectionVisibilitySettings(); 
+                    populateFeaturedProductSelectors();
+                }
+                if (targetId === 'reviews-admin-section') {
+                    renderReviewsTable();
+                }
+                if (targetId === 'messages-admin-section') {
+                    renderMessagesTable();
+                }
+            }
+            const activeLink = document.querySelector(`.nav-link[data-target="${targetId}"]`);
+            if (activeLink && adminCurrentSectionTitle) adminCurrentSectionTitle.textContent = (activeLink.innerText || activeLink.textContent).trim();
+        }
+
+        adminNavLinks.forEach(link => {
+            link.addEventListener('click', (e) => {
+                if (link.id === 'admin-logout-button') {
+                    return; 
+                }
+                e.preventDefault();
+                const targetId = link.getAttribute('data-target');
+                if (targetId) {
+                    adminNavLinks.forEach(l => l.classList.remove('active'));
+                    link.classList.add('active');
+                    showAdminSection(targetId);
+                }
+            });
+        });
+        
+        // --- Messages Management ---
+        const messagesTableBody = document.getElementById('messages-table-body');
+        const noMessagesAdminMessage = document.getElementById('no-messages-admin-message');
+
+        function getMessages() {
+            return JSON.parse(localStorage.getItem('triumindContactMessages')) || [];
+        }
+
+        function saveMessages(messages) {
+            localStorage.setItem('triumindContactMessages', JSON.stringify(messages));
+            renderMessagesTable(); // Re-render after saving
+        }
+
+        function renderMessagesTable() {
+            if (!messagesTableBody) return;
+            messagesTableBody.innerHTML = '';
+            const messages = getMessages();
+
+            if (messages.length === 0) {
+                if (noMessagesAdminMessage) noMessagesAdminMessage.classList.remove('hidden');
+                return;
+            }
+            if (noMessagesAdminMessage) noMessagesAdminMessage.classList.add('hidden');
+
+            messages.forEach(msg => {
+                const row = messagesTableBody.insertRow();
+                const timestamp = new Date(msg.timestamp).toLocaleString();
+                row.innerHTML = `
+                    <td class="text-sm">${timestamp}</td>
+                    <td><a href="mailto:${msg.email}" class="text-purple-400 hover:underline">${msg.email}</a></td>
+                    <td class="text-sm max-w-md whitespace-pre-wrap">${msg.message}</td>
+                    <td>
+                        <button class="btn btn-danger btn-sm delete-message-btn" data-message-id="${msg.id}"><i class="fas fa-trash"></i></button>
+                    </td>
+                `;
+            });
+
+            document.querySelectorAll('.delete-message-btn').forEach(button => {
+                button.addEventListener('click', function() {
+                    const messageId = this.dataset.messageId;
+                    deleteMessage(messageId);
+                });
+            });
+        }
+        
+        function deleteMessage(messageId) {
+             if (!confirm('Are you sure you want to delete this message?')) return;
+             let messages = getMessages();
+             messages = messages.filter(msg => msg.id !== messageId);
+             saveMessages(messages);
+        }
+        
+        // --- Review Management ---
+        const reviewsTableBody = document.getElementById('reviews-table-body');
+        const noReviewsAdminMessage = document.getElementById('no-reviews-admin-message');
+
+        function getReviews() {
+            return JSON.parse(localStorage.getItem('triumindProductReviews')) || {};
+        }
+
+        function saveReviews(reviews) {
+            localStorage.setItem('triumindProductReviews', JSON.stringify(reviews));
+            renderReviewsTable();
+        }
+
+        function renderReviewsTable() {
+            if (!reviewsTableBody) return;
+            reviewsTableBody.innerHTML = '';
+            const allReviewsObject = getReviews();
+            const allReviewsFlat = Object.values(allReviewsObject).flat();
+
+            if (allReviewsFlat.length === 0) {
+                if(noReviewsAdminMessage) noReviewsAdminMessage.classList.remove('hidden');
+                return;
+            }
+            if(noReviewsAdminMessage) noReviewsAdminMessage.classList.add('hidden');
+
+            allReviewsFlat.sort((a,b) => new Date(b.date) - new Date(a.date));
+
+            allReviewsFlat.forEach(review => {
+                const row = reviewsTableBody.insertRow();
+                const ratingStars = '<span class="review-stars">' + '★'.repeat(review.rating) + '☆'.repeat(5 - review.rating) + '</span>';
+
+                row.innerHTML = `
+                    <td>${review.name}</td>
+                    <td>${ratingStars}</td>
+                    <td class="text-sm max-w-xs truncate" title="${review.text}">${review.text}</td>
+                    <td>${review.productName}</td>
+                    <td>
+                        <label class="toggle-switch">
+                            <input type="checkbox" class="feature-review-toggle" data-review-id="${review.id}" data-product-id="${review.productId}" ${review.isFeatured ? 'checked' : ''}>
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </td>
+                    <td>
+                        <button class="btn btn-danger btn-sm delete-review-btn" data-review-id="${review.id}" data-product-id="${review.productId}"><i class="fas fa-trash"></i></button>
+                    </td>
+                `;
+            });
+
+            document.querySelectorAll('.delete-review-btn').forEach(button => {
+                button.addEventListener('click', function() {
+                    const reviewId = this.dataset.reviewId;
+                    const productId = this.dataset.productId;
+                    deleteReview(productId, reviewId);
+                });
+            });
+
+            document.querySelectorAll('.feature-review-toggle').forEach(toggle => {
+                toggle.addEventListener('change', function() {
+                    const reviewId = this.dataset.reviewId;
+                    const productId = this.dataset.productId;
+                    const isFeatured = this.checked;
+                    toggleFeaturedStatus(productId, reviewId, isFeatured);
+                });
+            });
+        }
+
+        function deleteReview(productId, reviewId) {
+            if (!confirm('Are you sure you want to delete this review?')) return;
+
+            const allReviews = getReviews();
+            if (allReviews[productId]) {
+                allReviews[productId] = allReviews[productId].filter(review => review.id !== reviewId);
+                if (allReviews[productId].length === 0) {
+                    delete allReviews[productId];
+                }
+                saveReviews(allReviews);
+            }
+        }
+        
+        function toggleFeaturedStatus(productId, reviewId, isFeatured) {
+            const allReviews = getReviews();
+            if (allReviews[productId]) {
+                const reviewIndex = allReviews[productId].findIndex(review => review.id === reviewId);
+                if (reviewIndex > -1) {
+                    allReviews[productId][reviewIndex].isFeatured = isFeatured;
+                    saveReviews(allReviews);
+                }
+            }
+        }
+
+
+        // --- Section Customization Logic (Visibility & Featured Products) ---
+        const sectionVisibilityForm = document.getElementById('section-visibility-form');
+        const saveCustomizationSettingsButton = document.getElementById('save-customization-settings');
+
+        const sectionToggles = {
+            countdownVisible: document.getElementById('countdownVisible'), gearVisible: document.getElementById('gearVisible'),
+            storiesVisible: document.getElementById('storiesVisible'), reviewsVisible: document.getElementById('reviewsVisible'),
+            newsletterVisible: document.getElementById('newsletterVisible'), contactVisible: document.getElementById('contactVisible'),
+        };
+        const featuredGearCheckboxContainer = document.getElementById('featured-gear-checkbox-container');
+        const featuredDropCheckboxContainer = document.getElementById('featured-drop-checkbox-container');
+
+        function loadSectionVisibilitySettings() {
+            const settings = JSON.parse(localStorage.getItem('triumindSectionVisibility')) || {};
+            for (const key in sectionToggles) { 
+                if (sectionToggles[key]) { 
+                    sectionToggles[key].checked = settings[key] !== undefined ? settings[key] : true; 
+                } 
+            }
+        }
+        
+        function populateFeaturedProductSelectors() {
+            const products = getProducts().filter(p => p.status === 'Active');
+            const featuredSettings = JSON.parse(localStorage.getItem('triumindFeaturedProducts')) || {};
+            const gearProductIds = featuredSettings.gearSectionProductIds || [];
+            const dropProductIds = featuredSettings.dropSectionProductIds || [];
+            
+            [featuredGearCheckboxContainer, featuredDropCheckboxContainer].forEach((container) => {
+                if (!container) return;
+                container.innerHTML = '';
+                if (products.length === 0) {
+                    container.innerHTML = '<p class="text-[var(--admin-text-secondary)] text-sm p-2">No active products available.</p>';
+                    return;
+                }
+
+                let selectedIds = [];
+                if (container.id === 'featured-gear-checkbox-container') {
+                    selectedIds = gearProductIds;
+                } else if (container.id === 'featured-drop-checkbox-container') {
+                    selectedIds = dropProductIds;
+                }
+
+                products.forEach(product => {
+                    const checkboxId = `featured-${container.id}-${product.id}`;
+                    const label = document.createElement('label');
+                    label.htmlFor = checkboxId;
+                    label.className = 'form-checkbox-label';
+
+                    const checkbox = document.createElement('input');
+                    checkbox.type = 'checkbox';
+                    checkbox.id = checkboxId;
+                    checkbox.value = product.id;
+                    checkbox.className = 'form-checkbox-input';
+                    if (selectedIds.includes(product.id)) {
+                        checkbox.checked = true;
+                    }
+                    
+                    const span = document.createElement('span');
+                    span.textContent = product.name;
+
+                    label.appendChild(checkbox);
+                    label.appendChild(span);
+                    container.appendChild(label);
+                });
+            });
+        }
+
+        if (saveCustomizationSettingsButton) {
+            saveCustomizationSettingsButton.addEventListener('click', function() {
+                // Save visibility settings
+                const newVisibilitySettings = {};
+                for (const key in sectionToggles) { 
+                    if (sectionToggles[key]) { 
+                        newVisibilitySettings[key] = sectionToggles[key].checked; 
+                    } 
+                }
+                localStorage.setItem('triumindSectionVisibility', JSON.stringify(newVisibilitySettings));
+
+                // Save featured product settings
+                const selectedGearProductIds = Array.from(featuredGearCheckboxContainer.querySelectorAll('input:checked')).map(cb => cb.value);
+                const selectedDropProductIds = Array.from(featuredDropCheckboxContainer.querySelectorAll('input:checked')).map(cb => cb.value);
+
+                if (selectedGearProductIds.length > 3) {
+                    const errorMsgEl = document.createElement('p');
+                    errorMsgEl.textContent = 'Max 3 products allowed for Main Gear Section.';
+                    errorMsgEl.className = 'text-red-400 text-sm mt-2 text-center';
+                    saveCustomizationSettingsButton.parentNode.insertBefore(errorMsgEl, saveCustomizationSettingsButton);
+                    setTimeout(() => errorMsgEl.remove(), 4000);
+                    return;
+                }
+
+                const newFeaturedSettings = {
+                    gearSectionProductIds: selectedGearProductIds.slice(0, 3),
+                    dropSectionProductIds: selectedDropProductIds
+                };
+                localStorage.setItem('triumindFeaturedProducts', JSON.stringify(newFeaturedSettings));
+                
+                const successMsg = document.createElement('p');
+                successMsg.textContent = 'All customization settings saved! Refresh main site.';
+                successMsg.className = 'text-green-400 text-sm mt-2 text-center';
+                saveCustomizationSettingsButton.parentNode.insertBefore(successMsg, saveCustomizationSettingsButton);
+                setTimeout(() => successMsg.remove(), 3000);
+            });
+        }
+
+
+        // START: Reworked Countdown Logic
+        const adminDropForm = document.getElementById('adminDropForm');
+        const adminCurrentCountdownDisplay = document.getElementById('current-countdown-display');
+        const dropFormFeedback = document.getElementById('drop-form-feedback');
+
+        function populateDropActivationProductSelector() {
+            const checkboxContainer = document.getElementById('drop-activation-products-checkbox-container');
+            if (!checkboxContainer) return;
+            checkboxContainer.innerHTML = '';
+            const products = getProducts();
+            const draftProducts = products.filter(p => p.status === 'Draft');
+
+            if (draftProducts.length === 0) {
+                checkboxContainer.innerHTML = '<p class="text-[var(--admin-text-secondary)] text-sm p-2">No DRAFT products available to attach.</p>';
+                return;
+            }
+
+            const savedSettings = JSON.parse(localStorage.getItem('triumindCountdownSettings')) || {};
+            const selectedIds = savedSettings.productIdsForActivation || [];
+
+            draftProducts.forEach(product => {
+                const checkboxId = `drop-product-${product.id}`;
+                const label = document.createElement('label');
+                label.htmlFor = checkboxId;
+                label.className = 'form-checkbox-label';
+
+                const checkbox = document.createElement('input');
+                checkbox.type = 'checkbox';
+                checkbox.id = checkboxId;
+                checkbox.value = product.id;
+                checkbox.className = 'form-checkbox-input';
+                if (selectedIds.includes(product.id)) {
+                    checkbox.checked = true;
+                }
+
+                const span = document.createElement('span');
+                span.textContent = `${product.name} (Draft)`;
+
+                label.appendChild(checkbox);
+                label.appendChild(span);
+                checkboxContainer.appendChild(label);
+            });
+        }
+        
+        function loadCurrentCountdownSettings() {
+             const savedSettings = JSON.parse(localStorage.getItem('triumindCountdownSettings')) || {};
+             const alsoFeatureCheckbox = document.getElementById('also-feature-in-gear');
+
+             if (savedSettings.target && adminCurrentCountdownDisplay) {
+                const savedDate = new Date(parseInt(savedSettings.target));
+                if (!isNaN(savedDate.getTime()) && savedDate.getTime() > Date.now()) { 
+                    const mode = (savedSettings.mode || 'section').replace(/^\w/, c => c.toUpperCase());
+                    adminCurrentCountdownDisplay.textContent = `T-Minus: ${savedDate.toLocaleString()} (Mode: ${mode})`;
+                    const modeRadio = adminDropForm.querySelector(`input[name="countdownMode"][value="${savedSettings.mode || 'section'}"]`);
+                    if (modeRadio) modeRadio.checked = true;
+                    if (alsoFeatureCheckbox) {
+                        alsoFeatureCheckbox.checked = savedSettings.alsoFeatureInGear === true;
+                    }
+                } else {
+                     adminCurrentCountdownDisplay.textContent = "T-Minus: Not Set or Expired";
+                     localStorage.removeItem('triumindCountdownSettings'); 
+                }
+            } else {
+                 adminCurrentCountdownDisplay.textContent = "T-Minus: Not Set";
+                 if (alsoFeatureCheckbox) alsoFeatureCheckbox.checked = false;
+            }
+        }
+
+
+        if (adminDropForm) {
+            adminDropForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                const adminDropDateInput = document.getElementById('drop-date');
+                const adminDropTimeInput = document.getElementById('drop-time');
+                const alsoFeatureCheckbox = document.getElementById('also-feature-in-gear');
+                
+                const selectedProductIdsForActivation = Array.from(document.querySelectorAll('#drop-activation-products-checkbox-container input[type="checkbox"]:checked'))
+                                                          .map(checkbox => checkbox.value);
+
+                let isValid = true;
+                let feedback = '';
+
+                if (!adminDropDateInput.value || !adminDropTimeInput.value) {
+                    feedback = 'Please set a valid date and time.';
+                    isValid = false;
+                } else if (selectedProductIdsForActivation.length === 0) {
+                    feedback = 'You must select at least one DRAFT product to activate for the drop.';
+                    isValid = false;
+                }
+
+                if (!isValid) {
+                    dropFormFeedback.textContent = feedback;
+                    dropFormFeedback.classList.remove('hidden');
+                    return;
+                }
+                
+                dropFormFeedback.classList.add('hidden');
+
+                const targetDateTime = new Date(`${adminDropDateInput.value}T${adminDropTimeInput.value}:00Z`); // Assume UTC
+                if (isNaN(targetDateTime.getTime()) || targetDateTime.getTime() <= Date.now()) {
+                    dropFormFeedback.textContent = 'Please select a date and time in the future.';
+                    dropFormFeedback.classList.remove('hidden');
+                    return;
+                }
+
+                const checkedRadio = adminDropForm.querySelector('input[name="countdownMode"]:checked');
+                const selectedMode = checkedRadio ? checkedRadio.value : 'section';
+
+                const newCountdownSettings = {
+                    target: targetDateTime.getTime().toString(),
+                    mode: selectedMode,
+                    productIdsForActivation: selectedProductIdsForActivation,
+                    alsoFeatureInGear: alsoFeatureCheckbox ? alsoFeatureCheckbox.checked : false 
+                };
+
+                localStorage.setItem('triumindCountdownSettings', JSON.stringify(newCountdownSettings));
+                
+                loadCurrentCountdownSettings();
+
+                dropFormFeedback.textContent = 'Countdown Synchronized! Refresh main site to see changes.';
+                dropFormFeedback.className = 'text-green-400 text-sm';
+                dropFormFeedback.classList.remove('hidden');
+                setTimeout(() => dropFormFeedback.classList.add('hidden'), 4000);
+            });
+        }
+        // END: Reworked Countdown Logic
+
+        // Product Management Logic
+        const productForm = document.getElementById('product-form');
+        const productFormTitle = document.getElementById('product-form-title');
+        const productFormSubmitBtn = document.getElementById('product-form-submit-btn');
+        const editingProductIdInput = document.getElementById('editing-product-id');
+        
+        const productTableBody = document.getElementById('product-table-body');
+        const toggleAddProductFormButton = document.getElementById('toggle-add-product-form');
+        const addProductFormContainer = document.getElementById('add-product-form-container');
+        const cancelAddProductButton = document.getElementById('cancel-add-product');
+        const noProductsMessage = document.getElementById('no-products-message');
+        const dashboardProductCountEl = document.getElementById('dashboard-product-count');
+        const productImagesInput = document.getElementById('product-images-input');
+        const imagePreviewGrid = document.getElementById('image-preview-grid');
+        const imageUploadTrigger = document.getElementById('image-upload-trigger');
+        let currentProductImages = []; 
+        let currentSizeGuideData = null; // NEW: Holds size guide data for the current product being edited/created
+        
+        const productSizesInput = document.getElementById('product-sizes');
+        const productColorsInput = document.getElementById('product-colors');
+        
+        if (imageUploadTrigger && productImagesInput) { 
+            imageUploadTrigger.addEventListener('click', () => productImagesInput.click()); 
+            productImagesInput.addEventListener('change', handleImageUpload); 
+        }
+        
+        function getProducts() { return JSON.parse(localStorage.getItem('triumindProducts')) || []; }
+        function saveProducts(products) { 
+            try { 
+                localStorage.setItem('triumindProducts', JSON.stringify(products)); 
+                populateDropActivationProductSelector(); 
+                populateFeaturedProductSelectors();
+            } catch (e) { 
+                console.error("Error saving products to localStorage:", e); 
+            } 
+        }
+        
+        function resetProductForm() {
+            if (productForm) productForm.reset();
+            currentProductImages = [];
+            currentSizeGuideData = null; // NEW: Reset size guide data
+            updateSizeGuideStatus();
+            renderImagePreviews();
+            if (editingProductIdInput) editingProductIdInput.value = ''; 
+            if (productFormTitle) productFormTitle.textContent = 'New Product Deployment';
+            if (productFormSubmitBtn) productFormSubmitBtn.innerHTML = '<i class="fas fa-check-circle mr-2"></i>Confirm Deployment';
+            if (toggleAddProductFormButton) toggleAddProductFormButton.innerHTML = '<i class="fas fa-plus-circle mr-2"></i> Deploy New Unit';
+            if (productSizesInput) productSizesInput.value = ''; 
+            if (productColorsInput) productColorsInput.value = ''; 
+        }
+
+        if (toggleAddProductFormButton && addProductFormContainer) {
+            toggleAddProductFormButton.addEventListener('click', () => {
+                const isOpen = addProductFormContainer.classList.contains('open');
+                if (isOpen) { 
+                    addProductFormContainer.classList.remove('open');
+                    resetProductForm(); 
+                } else { 
+                    resetProductForm(); 
+                    addProductFormContainer.classList.add('open');
+                    if (toggleAddProductFormButton) toggleAddProductFormButton.innerHTML = '<i class="fas fa-minus-circle mr-2"></i> Cancel Deployment';
+                }
+            });
+        }
+
+        if (cancelAddProductButton && addProductFormContainer) {
+            cancelAddProductButton.addEventListener('click', () => {
+                addProductFormContainer.classList.remove('open'); 
+                resetProductForm(); 
+            });
+        }
+        
+        function handleImageUpload(event) {
+            const files = event.target.files; if (!files) return;
+            const maxImages = 5;
+            if (currentProductImages.length + files.length > maxImages) { 
+                return; 
+            }
+            Array.from(files).forEach(file => {
+                if (!['image/jpeg', 'image/png', 'image/webp', 'image/gif'].includes(file.type)) { 
+                    return; 
+                }
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    const newImage = { id: `img-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`, dataUrl: e.target.result, name: file.name, isPrimary: currentProductImages.length === 0 && !currentProductImages.some(img => img.isPrimary) };
+                    currentProductImages.push(newImage); renderImagePreviews();
+                };
+                reader.onerror = (err) => { console.error("FileReader error:", err); };
+                reader.readAsDataURL(file);
+            });
+            if(productImagesInput) productImagesInput.value = ''; 
+        }
+
+        function renderImagePreviews() {
+            if(!imagePreviewGrid) return; 
+            imagePreviewGrid.innerHTML = '';
+            currentProductImages.forEach((imgData) => { 
+                const item = document.createElement('div');
+                item.className = 'image-preview-item';
+                item.setAttribute('data-id', imgData.id);
+                if (imgData.isPrimary) item.classList.add('is-primary');
+                item.innerHTML = `
+                    <img src="${imgData.dataUrl}" alt="${imgData.name || 'Preview'}">
+                    <button type="button" class="remove-image-btn" title="Remove image">&times;</button>
+                    ${!imgData.isPrimary ? '<button type="button" class="set-primary-btn" title="Set as primary">Primary</button>' : ''}
+                `;
+                item.querySelector('.remove-image-btn').addEventListener('click', (e) => { e.stopPropagation(); removeImagePreview(imgData.id); });
+                if (!imgData.isPrimary) {
+                    item.querySelector('.set-primary-btn').addEventListener('click', (e) => { e.stopPropagation(); setPrimaryImage(imgData.id); });
+                }
+                imagePreviewGrid.appendChild(item);
+            });
+
+            if (imagePreviewGrid.sortableInstance) {
+                imagePreviewGrid.sortableInstance.destroy();
+            }
+            if (currentProductImages.length > 1 && typeof Sortable !== 'undefined') { 
+                imagePreviewGrid.sortableInstance = Sortable.create(imagePreviewGrid, {
+                    animation: 150,
+                    ghostClass: 'sortable-ghost',
+                    onEnd: updateImageOrder
+                });
+            }
+        }
+
+        function removeImagePreview(imageId) {
+            currentProductImages = currentProductImages.filter(img => img.id !== imageId);
+            if (currentProductImages.length > 0 && !currentProductImages.some(img => img.isPrimary)) {
+                currentProductImages[0].isPrimary = true; 
+            }
+            renderImagePreviews();
+        }
+
+        function setPrimaryImage(imageId) {
+            currentProductImages.forEach(img => img.isPrimary = (img.id === imageId));
+            renderImagePreviews();
+        }
+
+        function updateImageOrder(evt) {
+            const newOrder = Array.from(evt.to.children).map(item => item.getAttribute('data-id'));
+            const orderedImages = [];
+            newOrder.forEach(id => {
+                const img = currentProductImages.find(i => i.id === id);
+                if (img) orderedImages.push(img);
+            });
+            currentProductImages = orderedImages;
+            if (currentProductImages.length > 0 && !currentProductImages.some(img => img.isPrimary)) {
+                currentProductImages[0].isPrimary = true;
+            }
+            renderImagePreviews(); 
+        }
+        
+        function populateFormForEdit(productId) {
+            const products = getProducts();
+            const productToEdit = products.find(p => p.id === productId);
+            if (!productToEdit) {
+                resetProductForm(); 
+                return;
+            }
+
+            if (editingProductIdInput) editingProductIdInput.value = productToEdit.id;
+            if (document.getElementById('product-name')) document.getElementById('product-name').value = productToEdit.name;
+            if (document.getElementById('product-description')) document.getElementById('product-description').value = productToEdit.description;
+            if (document.getElementById('product-price')) document.getElementById('product-price').value = productToEdit.price;
+            if (document.getElementById('product-sku')) document.getElementById('product-sku').value = productToEdit.sku || '';
+            if (document.getElementById('product-stock')) document.getElementById('product-stock').value = productToEdit.stock;
+            if (document.getElementById('product-status')) document.getElementById('product-status').value = productToEdit.status;
+
+            if (productSizesInput && productToEdit.sizes && Array.isArray(productToEdit.sizes)) {
+                productSizesInput.value = productToEdit.sizes.join(', ');
+            } else if (productSizesInput) {
+                productSizesInput.value = '';
+            }
+            if (productColorsInput && productToEdit.colors && Array.isArray(productToEdit.colors)) {
+                productColorsInput.value = productToEdit.colors.join(', ');
+            } else if (productColorsInput) {
+                productColorsInput.value = '';
+            }
+            
+            currentProductImages = productToEdit.images ? [...productToEdit.images] : []; 
+            currentSizeGuideData = productToEdit.sizeGuideData || null; // NEW: Load size guide data
+            updateSizeGuideStatus(); // NEW: Update the status message
+            renderImagePreviews();
+
+            if (productFormTitle) productFormTitle.textContent = 'Edit Product Deployment';
+            if (productFormSubmitBtn) productFormSubmitBtn.innerHTML = '<i class="fas fa-save mr-2"></i>Confirm Update';
+            if (toggleAddProductFormButton) toggleAddProductFormButton.innerHTML = '<i class="fas fa-minus-circle mr-2"></i> Cancel Edit';
+            
+            if (addProductFormContainer) addProductFormContainer.classList.add('open');
+            window.scrollTo({ top: addProductFormContainer.offsetTop - 100 , behavior: 'smooth' }); 
+        }
+
+
+        function renderProductsTable() {
+             if (!productTableBody) return; 
+            const products = getProducts(); productTableBody.innerHTML = '';
+            if (products.length === 0) { if(noProductsMessage) noProductsMessage.classList.remove('hidden'); }
+            else {
+                if(noProductsMessage) noProductsMessage.classList.add('hidden');
+                products.forEach(product => {
+                    let primaryImageUrl = 'https://placehold.co/100x100/333/ccc?text=N/A';
+                    if (product.images && product.images.length > 0) {
+                        const primaryImg = product.images.find(img => img.isPrimary) || product.images[0];
+                        if (primaryImg && primaryImg.dataUrl) primaryImageUrl = primaryImg.dataUrl;
+                    }
+                    const row = productTableBody.insertRow();
+                    let productNameDisplay = product.name;
+                    row.innerHTML = `
+                        <td><img src="${primaryImageUrl}" alt="${product.name}" class="product-thumbnail-small"></td>
+                        <td>${productNameDisplay}</td>
+                        <td>${product.sku || 'N/A'}</td>
+                        <td>$${parseFloat(product.price).toFixed(2)}</td>
+                        <td>${product.stock}</td>
+                        <td><span class="status-badge ${product.status === 'Draft' ? 'status-badge-draft' : 'status-badge-active'}">${product.status}</span></td>
+                        <td class="space-x-1">
+                            <button class="btn btn-secondary btn-sm btn-edit-product" data-id="${product.id}"><i class="fas fa-edit"></i></button>
+                            <button class="btn btn-danger btn-sm btn-delete-product" data-id="${product.id}"><i class="fas fa-trash"></i></button>
+                        </td>
+                    `;
+                });
+            }
+            if(dashboardProductCountEl) dashboardProductCountEl.textContent = products.length;
+            
+            document.querySelectorAll('.btn-delete-product').forEach(button => { 
+                button.addEventListener('click', function() { 
+                        deleteProduct(this.getAttribute('data-id')); 
+                }); 
+            });
+
+            document.querySelectorAll('.btn-edit-product').forEach(button => {
+                button.addEventListener('click', function() {
+                    populateFormForEdit(this.getAttribute('data-id'));
+                });
+            });
+        }
+
+        function deleteProduct(productId) {
+            if (!confirm('Are you sure you want to delete this product? This will also remove its reviews.')) return;
+            
+            // Delete product
+            let products = getProducts();
+            products = products.filter(p => p.id !== productId);
+            saveProducts(products);
+
+            // FIXED BUG: Delete associated reviews
+            let allReviews = getReviews();
+            if (allReviews[productId]) {
+                delete allReviews[productId];
+                saveReviews(allReviews);
+            }
+            
+            renderProductsTable();
+            if(!document.getElementById('reviews-admin-section').classList.contains('hidden')) {
+                renderReviewsTable(); // If reviews section is open, refresh it
+            }
+            updateDashboardMetrics(); 
+        }
+
+        if (productForm) {
+             productForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                 if (currentProductImages.length === 0) { 
+                    alert("Please upload at least one product image."); // Using alert as a placeholder for better UI notification
+                    return; 
+                }
+                if (currentProductImages.length > 0 && !currentProductImages.some(img => img.isPrimary)) { 
+                    currentProductImages[0].isPrimary = true; 
+                }
+
+                const productName = document.getElementById('product-name').value;
+                const productPrice = document.getElementById('product-price').value;
+                const productStock = parseInt(document.getElementById('product-stock').value);
+
+                if (!productName || !productPrice || isNaN(productStock) || productStock < 0) { 
+                    alert("Please fill all required product fields with valid data.");
+                    return; 
+                }
+
+                const sizesString = productSizesInput ? productSizesInput.value : '';
+                const colorsString = productColorsInput ? productColorsInput.value : '';
+
+                const productSizesArray = sizesString.split(',').map(s => s.trim()).filter(s => s !== '');
+                const productColorsArray = colorsString.split(',').map(c => c.trim()).filter(c => c !== '');
+                                
+                const editingId = editingProductIdInput ? editingProductIdInput.value : '';
+                let products = getProducts();
+                let successMessageText = '';
+
+                const productData = {
+                    name: productName,
+                    description: document.getElementById('product-description').value,
+                    price: productPrice,
+                    sku: document.getElementById('product-sku').value,
+                    stock: productStock,
+                    status: document.getElementById('product-status').value,
+                    images: [...currentProductImages],
+                    sizes: productSizesArray, 
+                    colors: productColorsArray,
+                    sizeGuideData: currentSizeGuideData // NEW: Add size guide data
+                };
+
+                if (editingId) { 
+                    const productIndex = products.findIndex(p => p.id === editingId);
+                    if (productIndex > -1) {
+                        products[productIndex] = { ...products[productIndex], ...productData };
+                    }
+                } else { 
+                    const newProduct = { id: `TM-${Date.now()}`, ...productData };
+                    products.push(newProduct);
+                }
+                
+                saveProducts(products); 
+                renderProductsTable(); 
+                updateDashboardMetrics(); 
+                resetProductForm(); 
+                if(addProductFormContainer) addProductFormContainer.classList.remove('open'); 
+            });
+        }
+
+        // START: NEW Size Guide Editor Logic
+        const sizeGuideEditorOverlay = document.getElementById('size-guide-editor-modal-overlay');
+        const openSizeGuideEditorBtn = document.getElementById('open-size-guide-editor');
+        const closeSizeGuideEditorBtn = document.getElementById('size-guide-editor-close-btn');
+        const cancelSizeGuideEditorBtn = document.getElementById('size-guide-cancel-btn');
+        const saveSizeGuideBtn = document.getElementById('size-guide-save-btn');
+        const sizeGuideEditorTable = document.getElementById('size-guide-editor-table');
+        const addRowBtn = document.getElementById('sg-add-row');
+        const addColBtn = document.getElementById('sg-add-col');
+        const sizeGuideStatusEl = document.getElementById('size-guide-status');
+
+        function openSizeGuideEditor() {
+            if (sizeGuideEditorOverlay) sizeGuideEditorOverlay.classList.add('open');
+            renderSizeGuideEditor(currentSizeGuideData);
+        }
+
+        function closeSizeGuideEditor() {
+            if (sizeGuideEditorOverlay) sizeGuideEditorOverlay.classList.remove('open');
+        }
+
+        function updateSizeGuideStatus() {
+            if (sizeGuideStatusEl) {
+                if (currentSizeGuideData && currentSizeGuideData.headers.length > 0) {
+                    sizeGuideStatusEl.textContent = `Size guide attached (${currentSizeGuideData.rows.length} rows, ${currentSizeGuideData.headers.length} columns).`;
+                    sizeGuideStatusEl.style.color = '#22c55e'; // Green
+                } else {
+                    sizeGuideStatusEl.textContent = 'No size guide created for this product yet.';
+                    sizeGuideStatusEl.style.color = 'var(--admin-text-secondary)';
+                }
+            }
+        }
+
+        function renderSizeGuideEditor(data) {
+            const table = sizeGuideEditorTable;
+            if (!table) return;
+
+            // Default structure if no data exists
+            const guideData = data && data.headers && data.rows ? data : {
+                headers: ['Size', 'Chest (cm)'],
+                rows: [['S', '92-96'], ['M', '97-101']]
+            };
+
+            table.innerHTML = ''; // Clear previous content
+
+            // Create header
+            const thead = table.createTHead();
+            const headerRow = thead.insertRow();
+            guideData.headers.forEach((headerText, index) => {
+                const th = document.createElement('th');
+                th.setAttribute('contenteditable', 'true');
+                th.textContent = headerText;
+                th.innerHTML += `<button class="size-guide-remove-btn size-guide-remove-col-btn" data-col-index="${index}" title="Remove column">&times;</button>`;
+                headerRow.appendChild(th);
+            });
+
+            // Create body
+            const tbody = table.createTBody();
+            guideData.rows.forEach((rowData, rowIndex) => {
+                const row = tbody.insertRow();
+                rowData.forEach(cellData => {
+                    const cell = row.insertCell();
+                    cell.setAttribute('contenteditable', 'true');
+                    cell.textContent = cellData;
+                });
+                // Add remove button to the first cell of each data row
+                if (row.cells[0]) {
+                     row.cells[0].innerHTML += `<button class="size-guide-remove-btn size-guide-remove-row-btn" data-row-index="${rowIndex}" title="Remove row">&times;</button>`;
+                }
+            });
+        }
+        
+        function parseSizeGuideEditor() {
+            const table = sizeGuideEditorTable;
+            if (!table) return null;
+            
+            const headers = Array.from(table.querySelectorAll('thead th')).map(th => th.textContent.replace('×','').trim());
+            const rows = Array.from(table.querySelectorAll('tbody tr')).map(tr => 
+                Array.from(tr.querySelectorAll('td')).map(td => td.textContent.replace('×','').trim())
+            );
+
+            return { headers, rows };
+        }
+        
+        if (openSizeGuideEditorBtn) openSizeGuideEditorBtn.addEventListener('click', openSizeGuideEditor);
+        if (closeSizeGuideEditorBtn) closeSizeGuideEditorBtn.addEventListener('click', closeSizeGuideEditor);
+        if (cancelSizeGuideEditorBtn) cancelSizeGuideEditorBtn.addEventListener('click', closeSizeGuideEditor);
+
+        if (saveSizeGuideBtn) {
+            saveSizeGuideBtn.addEventListener('click', () => {
+                currentSizeGuideData = parseSizeGuideEditor();
+                updateSizeGuideStatus();
+                closeSizeGuideEditor();
+            });
+        }
+
+        if (addRowBtn) {
+            addRowBtn.addEventListener('click', () => {
+                const table = sizeGuideEditorTable;
+                if (!table) return;
+                const tbody = table.tBodies[0];
+                const newRow = tbody.insertRow();
+                const colCount = table.tHead.rows[0].cells.length;
+                for (let i = 0; i < colCount; i++) {
+                    const cell = newRow.insertCell();
+                    cell.setAttribute('contenteditable', 'true');
+                    cell.textContent = '...';
+                }
+                if (newRow.cells[0]) {
+                     newRow.cells[0].innerHTML += `<button class="size-guide-remove-btn size-guide-remove-row-btn" data-row-index="${tbody.rows.length - 1}" title="Remove row">&times;</button>`;
+                }
+            });
+        }
+        
+        if (addColBtn) {
+            addColBtn.addEventListener('click', () => {
+                const table = sizeGuideEditorTable;
+                if (!table) return;
+                const headerRow = table.tHead.rows[0];
+                const th = document.createElement('th');
+                th.setAttribute('contenteditable', 'true');
+                th.textContent = 'New Column';
+                th.innerHTML += `<button class="size-guide-remove-btn size-guide-remove-col-btn" data-col-index="${headerRow.cells.length}" title="Remove column">&times;</button>`;
+                headerRow.appendChild(th);
+
+                Array.from(table.tBodies[0].rows).forEach(row => {
+                    const cell = row.insertCell();
+                    cell.setAttribute('contenteditable', 'true');
+                    cell.textContent = '...';
+                });
+            });
+        }
+
+        if (sizeGuideEditorTable) {
+            sizeGuideEditorTable.addEventListener('click', function(e) {
+                if (e.target.classList.contains('size-guide-remove-col-btn')) {
+                    const colIndex = parseInt(e.target.dataset.colIndex, 10);
+                    Array.from(this.rows).forEach(row => row.deleteCell(colIndex));
+                }
+                if (e.target.classList.contains('size-guide-remove-row-btn')) {
+                     const rowIndex = parseInt(e.target.dataset.rowIndex, 10);
+                     this.tBodies[0].deleteRow(rowIndex);
+                }
+            });
+        }
+        // END: NEW Size Guide Editor Logic
+
+
+        // Order Management
+        const orderDetailModalOverlay = document.getElementById('order-detail-modal-overlay');
+        const orderDetailModalCloseBtn = document.getElementById('order-detail-modal-close-btn');
+        const modalCustomerName = document.getElementById('modal-customer-name');
+        const modalCustomerEmail = document.getElementById('modal-customer-email');
+        const modalCustomerPhone = document.getElementById('modal-customer-phone');
+        const modalCustomerAddress = document.getElementById('modal-customer-address');
+        const modalOrderId = document.getElementById('modal-order-id');
+        const modalOrderDate = document.getElementById('modal-order-date');
+        const modalOrderTotal = document.getElementById('modal-order-total');
+        const modalOrderStatus = document.getElementById('modal-order-status');
+        const modalOrderItemsTableBody = document.getElementById('modal-order-items-table-body');
+        const markOrderDoneBtn = document.getElementById('mark-order-done-btn');
+        let currentViewingOrderId = null;
+        let currentOrderFilter = 'All';
+
+        function getOrders() {
+            try { return JSON.parse(localStorage.getItem('triumindOrders')) || []; } 
+            catch (e) { console.error("Error parsing orders:", e); return []; }
+        }
+        function saveOrders(orders) {
+            try { localStorage.setItem('triumindOrders', JSON.stringify(orders)); } 
+            catch (e) { console.error("Error saving orders:", e); }
+        }
+        function getStatusBadgeClass(status) {
+            if (!status) return '';
+            switch (status.toLowerCase()) {
+                case 'processing': return 'status-badge-processing';
+                case 'completed': return 'status-badge-completed';
+                case 'shipped': return 'status-badge-shipped';
+                case 'cancelled': return 'status-badge-cancelled';
+                case 'refunded': return 'status-badge-refunded';
+                default: return '';
+            }
+        }
+        function displayOrderDetailModal(orderId) {
+            const order = getOrders().find(o => o.id === orderId);
+            currentViewingOrderId = null; 
+            if (!order) return;
+            currentViewingOrderId = orderId; 
+            if (modalCustomerName) modalCustomerName.textContent = order.customerName || 'N/A';
+            if (modalCustomerEmail) modalCustomerEmail.textContent = order.customerEmail || 'N/A';
+            if (modalCustomerPhone) modalCustomerPhone.textContent = order.customerPhone || 'N/A';
+            if (modalCustomerAddress) modalCustomerAddress.textContent = order.customerAddress || 'N/A';
+            if (modalOrderId) modalOrderId.textContent = order.id;
+            if (modalOrderDate) modalOrderDate.textContent = new Date(order.timestamp).toLocaleString();
+            if (modalOrderTotal) modalOrderTotal.textContent = `$${parseFloat(order.totalAmount || 0).toFixed(2)}`;
+            if (modalOrderStatus) {
+                 modalOrderStatus.textContent = order.status;
+                 modalOrderStatus.className = `status-badge ${getStatusBadgeClass(order.status)}`;
+            }
+            if (modalOrderItemsTableBody) {
+                modalOrderItemsTableBody.innerHTML = ''; 
+                if (order.items && Array.isArray(order.items)) {
+                    order.items.forEach(item => {
+                        const row = modalOrderItemsTableBody.insertRow();
+                        let optionsText = (item.selectedSize ? `Size: ${item.selectedSize}<br>` : '') + (item.selectedColor ? `Color: ${item.selectedColor}` : '');
+                        row.innerHTML = `
+                            <td><img src="${item.image || 'https://placehold.co/40x40/333/ccc?text=N/A'}" alt="${item.name}" style="width:40px; height:auto; border-radius:3px;"></td>
+                            <td>${item.name}</td> <td>${optionsText || 'N/A'}</td> <td>${item.quantity}</td>
+                            <td>$${parseFloat(item.price).toFixed(2)}</td> <td>$${(parseFloat(item.price) * item.quantity).toFixed(2)}</td>
+                        `;
+                    });
+                }
+            }
+            if (markOrderDoneBtn) {
+                markOrderDoneBtn.classList.toggle('hidden', !(order.status && order.status.toLowerCase() === 'processing'));
+            }
+            if (orderDetailModalOverlay) orderDetailModalOverlay.classList.add('open');
+        }
+        if (orderDetailModalCloseBtn && orderDetailModalOverlay) {
+            orderDetailModalCloseBtn.addEventListener('click', () => { orderDetailModalOverlay.classList.remove('open'); currentViewingOrderId = null; });
+            orderDetailModalOverlay.addEventListener('click', (event) => { 
+                if (event.target === orderDetailModalOverlay) { orderDetailModalOverlay.classList.remove('open'); currentViewingOrderId = null; }
+            });
+        }
+        if (markOrderDoneBtn) {
+            markOrderDoneBtn.addEventListener('click', () => {
+                if (!currentViewingOrderId) return;
+                let orders = getOrders();
+                const orderIndex = orders.findIndex(o => o.id === currentViewingOrderId);
+                if (orderIndex > -1) {
+                    orders[orderIndex].status = "Completed";
+                    saveOrders(orders);
+                    if (modalOrderStatus) {
+                        modalOrderStatus.textContent = "Completed";
+                        modalOrderStatus.className = `status-badge ${getStatusBadgeClass("Completed")}`;
+                    }
+                    markOrderDoneBtn.classList.add('hidden'); 
+                    renderOrdersTable(currentOrderFilter); 
+                    updateDashboardMetrics(); 
+                }
+            });
+        }
+        function renderOrdersTable(filterStatus = 'All') {
+            const orderTableBody = document.getElementById('order-table-body');
+            const noOrdersMsgEl = document.getElementById('no-orders-message');
+            if (!orderTableBody || !noOrdersMsgEl) return;
+            let orders = getOrders();
+            orderTableBody.innerHTML = ''; 
+            currentOrderFilter = filterStatus; 
+            let filteredOrders = (filterStatus !== 'All') ? orders.filter(order => order.status === filterStatus) : orders;
+            document.querySelectorAll('#order-filter-buttons .btn-filter').forEach(b => b.classList.toggle('active', b.dataset.status === filterStatus));
+            if (filteredOrders.length === 0) {
+                noOrdersMsgEl.textContent = `No orders found with status: ${filterStatus}.`;
+                noOrdersMsgEl.classList.remove('hidden');
+            } else {
+                noOrdersMsgEl.classList.add('hidden');
+                filteredOrders.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+                filteredOrders.forEach(order => {
+                    const row = orderTableBody.insertRow();
+                    row.innerHTML = `
+                        <td>${order.id}</td> <td>${order.customerName || 'N/A'}</td>
+                        <td>${new Date(order.timestamp).toLocaleString()}</td> <td>$${parseFloat(order.totalAmount || 0).toFixed(2)}</td>
+                        <td><span class="status-badge ${getStatusBadgeClass(order.status)}">${order.status}</span></td>
+                        <td class="space-x-1"><button class="btn btn-secondary btn-sm btn-view-order" data-order-id="${order.id}" title="View Details"><i class="fas fa-eye"></i></button></td>
+                    `;
+                });
+                document.querySelectorAll('.btn-view-order').forEach(b => b.addEventListener('click', function() { displayOrderDetailModal(this.dataset.orderId); }));
+            }
+        }
+        const orderFilterButtonsContainer = document.getElementById('order-filter-buttons');
+        if (orderFilterButtonsContainer) {
+            orderFilterButtonsContainer.addEventListener('click', function(event) {
+                if (event.target.matches('.btn-filter')) renderOrdersTable(event.target.dataset.status);
+            });
+        }
+
+        // Newsletter Emails
+        function loadNewsletterEmails() {
+            const emailsListEl = document.getElementById('newsletter-emails-list');
+            const noEmailsMessageEl = document.getElementById('no-newsletter-emails');
+            if (!emailsListEl || !noEmailsMessageEl) return;
+            emailsListEl.innerHTML = ''; 
+            let newsletterSignups = [];
+            try { newsletterSignups = JSON.parse(localStorage.getItem('triumindNewsletterSignups')) || []; } 
+            catch (e) { console.error("Error parsing newsletter signups:", e); }
+            noEmailsMessageEl.classList.toggle('hidden', newsletterSignups.length > 0);
+            emailsListEl.classList.toggle('hidden', newsletterSignups.length === 0);
+            newsletterSignups.forEach(email => {
+                const listItem = document.createElement('li');
+                listItem.textContent = email;
+                emailsListEl.appendChild(listItem);
+            });
+        }
+
+        // Stories Management
+        const storySlotsContainer = document.getElementById('story-slots-container');
+        const NUM_STORY_SLOTS = 4; 
+        let currentStoryImages = []; 
+        function initializeStorySlots() {
+            if (!storySlotsContainer) return;
+            storySlotsContainer.innerHTML = ''; 
+            currentStoryImages = getStoredStories(); 
+            for (let i = 0; i < NUM_STORY_SLOTS; i++) {
+                const storyData = currentStoryImages[i] || { imageDataUrl: null, message: '' }; 
+                const slotDiv = document.createElement('div');
+                slotDiv.className = 'story-slot flex flex-col items-center';
+                slotDiv.innerHTML = `
+                    <h4 class="text-lg font-medium mb-2 text-[var(--admin-text-secondary)]">Story Slot ${i + 1}</h4>
+                    <div class="story-image-preview-container">
+                        <img class="story-image-preview" src="${storyData.imageDataUrl || 'https://placehold.co/400x500/1a1a1a/cccccc?text=No+Image'}" alt="Story ${i + 1} Preview">
+                    </div>
+                    <label for="story-message-${i}" class="form-label text-left w-full mt-2">Story Message</label>
+                    <textarea id="story-message-${i}" class="form-textarea story-message-input mb-3" rows="3" placeholder="e.g., Badr was the first to join...">${storyData.message || ''}</textarea>
+                    <input type="file" class="story-image-input" accept="image/*" data-story-index="${i}">
+                    <button type="button" class="btn btn-secondary btn-sm mb-2 w-full upload-story-btn">Upload Image</button>
+                    <button type="button" class="btn btn-danger btn-sm w-full remove-story-btn" data-story-index="${i}">Remove Image</button>
+                `;
+                const previewImg = slotDiv.querySelector('.story-image-preview');
+                slotDiv.querySelector('.story-image-input').addEventListener('change', (event) => handleStoryImageUpload(event, i, previewImg));
+                slotDiv.querySelector('.upload-story-btn').onclick = () => slotDiv.querySelector('.story-image-input').click();
+                slotDiv.querySelector('.remove-story-btn').onclick = () => removeStoryImage(i, previewImg);
+                storySlotsContainer.appendChild(slotDiv);
+            }
+        }
+        function getStoredStories() {
+            try {
+                const stories = JSON.parse(localStorage.getItem('triumindStories'));
+                if (Array.isArray(stories) && stories.length > 0) {
+                     return stories.map(story => ({
+                        imageDataUrl: story ? story.imageDataUrl : null,
+                        message: story ? story.message || '' : ''
+                    })).slice(0, NUM_STORY_SLOTS);
+                }
+            } catch (e) { console.error("Error parsing stories:", e); }
+            return Array(NUM_STORY_SLOTS).fill(null).map(() => ({ imageDataUrl: null, message: '' }));
+        }
+
+        function saveStoriesToLocalStorage() {
+            try { localStorage.setItem('triumindStories', JSON.stringify(currentStoryImages)); } 
+            catch (e) { console.error("Error saving stories:", e); }
+        }
+
+        function handleStoryImageUpload(event, index, previewImgElement) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (e) => { 
+                    previewImgElement.src = e.target.result; 
+                    if (!currentStoryImages[index]) {
+                         currentStoryImages[index] = { imageDataUrl: null, message: '' };
+                    }
+                    currentStoryImages[index].imageDataUrl = e.target.result;
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+        function removeStoryImage(index, previewImgElement) {
+            previewImgElement.src = 'https://placehold.co/400x500/1a1a1a/cccccc?text=No+Image';
+            if (currentStoryImages[index]) {
+                currentStoryImages[index].imageDataUrl = null;
+            }
+        }
+
+        const saveStoriesButton = document.getElementById('save-stories-changes');
+        if (saveStoriesButton) {
+            saveStoriesButton.addEventListener('click', () => {
+                const messageInputs = storySlotsContainer.querySelectorAll('.story-message-input');
+                messageInputs.forEach((textarea, index) => {
+                    if (currentStoryImages[index]) {
+                        currentStoryImages[index].message = textarea.value.trim();
+                    } else if (textarea.value.trim() !== '') {
+                        currentStoryImages[index] = { imageDataUrl: null, message: textarea.value.trim() };
+                    }
+                });
+
+                saveStoriesToLocalStorage();
+
+                const existingMsg = saveStoriesButton.parentElement.querySelector('.save-feedback');
+                if (existingMsg) existingMsg.remove();
+                
+                const successMsg = document.createElement('p');
+                successMsg.textContent = 'Story changes saved successfully!';
+                successMsg.className = 'text-green-400 text-sm mt-4 save-feedback';
+                saveStoriesButton.parentNode.insertBefore(successMsg, saveStoriesButton.nextSibling);
+                setTimeout(() => successMsg.remove(), 3000);
+            });
+        }
+
+        // Dashboard Metrics
+        function updateDashboardMetrics() {
+            const orders = getOrders(); const products = getProducts(); 
+            const totalRevenueEl = document.getElementById('dashboard-total-revenue');
+            const activeOrdersEl = document.getElementById('dashboard-active-orders');
+            const productCountEl = document.getElementById('dashboard-product-count'); 
+            let totalRevenue = 0; let activeOrderCount = 0;
+            orders.forEach(order => {
+                if (order.status === 'Completed' || order.status === 'Shipped') totalRevenue += parseFloat(order.totalAmount || 0);
+                if (order.status === 'Processing' || order.status === 'Shipped') activeOrderCount++;
+            });
+            if (totalRevenueEl) totalRevenueEl.textContent = `$${totalRevenue.toFixed(2)}`;
+            if (activeOrdersEl) activeOrdersEl.textContent = activeOrderCount;
+            if (productCountEl) productCountEl.textContent = products.length; 
+        }
+        
+        // Initial Load
+        document.addEventListener('DOMContentLoaded', () => {
+            const initialAdminActiveLinkFromLoad = document.querySelector('.sidebar .nav-link.active');
+            if (initialAdminActiveLinkFromLoad && initialAdminActiveLinkFromLoad.getAttribute('data-target')) {
+                 showAdminSection(initialAdminActiveLinkFromLoad.getAttribute('data-target'));
+            } else if (adminNavLinks.length > 0 && adminNavLinks[0].getAttribute('data-target')) {
+                adminNavLinks[0].classList.add('active'); 
+                showAdminSection(adminNavLinks[0].getAttribute('data-target'));
+            }
+            renderProductsTable(); 
+            renderOrdersTable(); 
+            updateDashboardMetrics(); 
+            
+            window.addEventListener('storage', (event) => {
+                if (event.key === 'triumindProductReviews') {
+                    if(!document.getElementById('reviews-admin-section').classList.contains('hidden')) {
+                        renderReviewsTable();
+                    }
+                }
+                if (event.key === 'triumindContactMessages') {
+                     if(!document.getElementById('messages-admin-section').classList.contains('hidden')) {
+                        renderMessagesTable();
+                    }
+                }
+            });
+        });
+
+    </script>
+</body>
+</html>
