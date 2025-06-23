@@ -1099,10 +1099,10 @@
                 localStorage.removeItem('triumindLastActivatedDropProducts');
             }
 
-            // CORE FIX: Only modify the timer if the target is different from the one currently running.
-            // This prevents unrelated storage events (like changing featured products) from killing a valid, running timer.
-            if (newTargetTimestamp === activeCountdownTarget) {
-                return; // The correct timer is already running, so do nothing.
+            // MODIFIED CORE FIX: Only return if there's an active, unchanged timer.
+            // If newTargetTimestamp is null, proceed to set post-drop UI.
+            if (newTargetTimestamp && newTargetTimestamp === activeCountdownTarget) {
+                return;
             }
 
             // If we've reached here, the target has changed (or been added/removed).
@@ -1115,43 +1115,58 @@
             const fullSiteOverlay = document.getElementById('full-site-countdown-overlay');
             const countdownTitleEl = document.getElementById('section-countdown-title');
             const countdownSubtitleEl = document.getElementById('section-countdown-subtitle');
-            const countdownTimerEl = document.getElementById('countdown-timer');
+            const countdownTimerEl = document.getElementById('countdown-timer'); // Section timer numbers
             const newDropHeaderEl = document.getElementById('new-drop-header');
             const sectionDropProductGridEl = document.getElementById('section-drop-product-grid');
 
             // Always reset the UI to a clean slate before deciding what to show.
             countdownTitleEl.classList.add('hidden');
             countdownSubtitleEl.classList.add('hidden');
-            countdownTimerEl.classList.add('hidden');
+            countdownTimerEl.classList.add('hidden'); // Hide section timer numbers
             newDropHeaderEl.classList.add('hidden');
             sectionDropProductGridEl.classList.add('hidden');
-            if (fullSiteOverlay && document.body.classList.contains('site-takeover-active')) {
+
+            if (fullSiteOverlay) { // Ensure takeover elements are also reset
                 fullSiteOverlay.classList.remove('visible');
-                document.body.classList.remove('site-takeover-active');
-                setTimeout(() => fullSiteOverlay.classList.add('hidden'), 500); // Allow for transition
+                // Keep it hidden by default unless an active takeover countdown needs it
+                fullSiteOverlay.classList.add('hidden');
+                if (document.body.classList.contains('site-takeover-active')) {
+                    document.body.classList.remove('site-takeover-active');
+                }
             }
             
             if (activeCountdownTarget) {
                 // CASE 1: A new, valid countdown needs to be started.
+                // Hide product display elements explicitly if a countdown is active.
+                newDropHeaderEl.classList.add('hidden');
+                sectionDropProductGridEl.classList.add('hidden');
+
                 if (countdownSettings.mode === 'takeover') {
                     if (fullSiteOverlay) {
-                        fullSiteOverlay.classList.remove('hidden');
+                        fullSiteOverlay.classList.remove('hidden'); // Prepare to make visible
                         setTimeout(() => fullSiteOverlay.classList.add('visible'), 10);
                         document.body.classList.add('site-takeover-active');
                         const elements = { days: document.getElementById('takeover-days'), hours: document.getElementById('takeover-hours'), minutes: document.getElementById('takeover-minutes'), seconds: document.getElementById('takeover-seconds')};
-                        updateCountdownDisplay(activeCountdownTarget, elements); // Initial call
+                        updateCountdownDisplay(activeCountdownTarget, elements);
                         mainCountdownInterval = setInterval(() => updateCountdownDisplay(activeCountdownTarget, elements), 1000);
+                        // Ensure section timer elements are hidden during takeover
+                        countdownTitleEl.classList.add('hidden');
+                        countdownSubtitleEl.classList.add('hidden');
+                        countdownTimerEl.classList.add('hidden');
                     }
                 } else { // 'section' mode
                     countdownTitleEl.classList.remove('hidden');
                     countdownSubtitleEl.classList.remove('hidden');
-                    countdownTimerEl.classList.remove('hidden');
+                    countdownTimerEl.classList.remove('hidden'); // Show section timer numbers
                     const elements = { days: document.getElementById('days'), hours: document.getElementById('hours'), minutes: document.getElementById('minutes'), seconds: document.getElementById('seconds')};
-                    updateCountdownDisplay(activeCountdownTarget, elements); // Initial call
+                    updateCountdownDisplay(activeCountdownTarget, elements);
                     mainCountdownInterval = setInterval(() => updateCountdownDisplay(activeCountdownTarget, elements), 1000);
+                    // Ensure takeover overlay is hidden if section timer is active
+                    if (fullSiteOverlay) fullSiteOverlay.classList.add('hidden');
+                    document.body.classList.remove('site-takeover-active');
                 }
             } else {
-                // CASE 2: No active countdown.
+                // CASE 2: No active countdown (either drop ended, or no countdown set).
                 // Check if a countdown just expired.
                 if (countdownSettings && parseInt(countdownSettings.target) <= Date.now()) {
                     handleCountdownEnd(countdownSettings); // This will now also set 'triumindLastActivatedDropProducts'
@@ -1174,11 +1189,34 @@
                 }
 
                 if (productsToShowForDrop.length > 0) {
+                    // Explicitly show product elements
                     newDropHeaderEl.classList.remove('hidden');
                     displayDropProducts(productsToShowForDrop, sectionDropProductGridEl);
+
+                    // Explicitly hide ALL countdown-related elements
+                    countdownTitleEl.classList.add('hidden');
+                    countdownSubtitleEl.classList.add('hidden');
+                    countdownTimerEl.classList.add('hidden'); // Hide section timer numbers
+                    if (fullSiteOverlay) {
+                        fullSiteOverlay.classList.remove('visible'); // Ensure visibility is off
+                        fullSiteOverlay.classList.add('hidden');    // Ensure display is none
+                        document.body.classList.remove('site-takeover-active');
+                    }
                 } else {
+                     // No products to show for a drop, display default "Next Drop Incoming..." titles
                      countdownTitleEl.classList.remove('hidden');
                      countdownSubtitleEl.classList.remove('hidden');
+                     // Keep actual timer numbers hidden as there's no active countdown
+                     countdownTimerEl.classList.add('hidden');
+                     // Ensure product display elements are hidden
+                     newDropHeaderEl.classList.add('hidden');
+                     sectionDropProductGridEl.classList.add('hidden');
+                     // Ensure takeover is also hidden
+                     if (fullSiteOverlay) {
+                        fullSiteOverlay.classList.remove('visible');
+                        fullSiteOverlay.classList.add('hidden');
+                        document.body.classList.remove('site-takeover-active');
+                     }
                 }
             }
         }
