@@ -332,6 +332,30 @@
             line-height: 1.6;
             color: #e0e0e0;
         }
+
+        /* Hero Button Animation Styles */
+        .animating-hero-button {
+            position: relative;
+            overflow: hidden;
+            display: inline-block; /* Keep its block-like nature */
+            transition: width 0.1s ease-out; /* Smooth width changes if any */
+        }
+        .animating-hero-button .char-span {
+            display: inline-block;
+            opacity: 0;
+            transform: translateY(10px) scale(0.9);
+            transition: opacity 0.25s ease-out, transform 0.25s ease-out;
+            font-weight: 900; /* Bold like hero text */
+            font-family: 'Inter', sans-serif; /* Ensure consistent font */
+            min-width: 0.5em; /* Give letters some space */
+            text-align: center;
+        }
+        .animating-hero-button .char-span.visible {
+            opacity: 1;
+            transform: translateY(0px) scale(1);
+        }
+        /* End Hero Button Animation Styles */
+
         @media (min-width: 768px) {
             #story-viewer-content {
                 flex-direction: row;
@@ -1480,42 +1504,75 @@
                 if (!buttonElement || buttonElement.dataset.animating === 'true') return;
 
                 buttonElement.dataset.animating = 'true';
-                const originalText = buttonElement.textContent;
+                const originalContent = buttonElement.innerHTML; // Store full HTML for restoration
                 const letters = textToAnimate.split('');
                 let currentLetterIndex = 0;
-                const letterInterval = 120; // ms per letter
-                const finalDisplayTime = 300; // ms to show the full "TRIUMIND" or last letter
 
-                // Fix button width to prevent jitter
+                const letterAppearDuration = 250; // Corresponds to CSS transition duration
+                const interLetterDelay = 150;   // Delay before the *next* letter starts appearing
+                                                // Total time per letter step = letterAppearDuration (for fade out) + interLetterDelay (for next to start)
+                                                // This might need some fine tuning. Let's try a simpler sequential display with hold.
+                const letterDisplayTime = 250; // Slower: Time each letter is visible
+                const holdLastLetterTime = 400; // Slower: Time to hold the last letter 'D'
+
                 const originalWidth = buttonElement.offsetWidth;
-                buttonElement.style.width = `${originalWidth}px`;
-                buttonElement.style.textAlign = 'center'; // Ensure text is centered
+                buttonElement.style.minWidth = `${originalWidth}px`; // Use min-width
+                buttonElement.style.textAlign = 'center';
+                buttonElement.classList.add('animating-hero-button');
 
-                function showNextLetter() {
-                    if (currentLetterIndex < letters.length) {
-                        buttonElement.textContent = letters[currentLetterIndex];
+                buttonElement.innerHTML = ''; // Clear button for new spans
+
+                // Create spans for each letter
+                letters.forEach(letter => {
+                    const span = document.createElement('span');
+                    span.className = 'char-span'; // CSS will handle initial opacity:0, transform
+                    span.textContent = letter;
+                    buttonElement.appendChild(span);
+                });
+
+                const charSpans = Array.from(buttonElement.querySelectorAll('.char-span'));
+
+                function revealStep() {
+                    if (currentLetterIndex < charSpans.length) {
+                        if (currentLetterIndex > 0) {
+                            // Make previous letter quickly fade or just disappear if not using individual fades for out.
+                            // For simplicity, let's make previous letters non-visible instantly or rely on CSS to fade them if 'visible' is removed.
+                            // To show one letter at a time, hide previous.
+                             charSpans[currentLetterIndex - 1].classList.remove('visible');
+                        }
+                        charSpans[currentLetterIndex].classList.add('visible');
                         currentLetterIndex++;
-                        setTimeout(showNextLetter, letterInterval);
+                        setTimeout(revealStep, letterDisplayTime);
                     } else {
-                        // Animation finished (all letters shown)
+                        // All letters have been made visible one by one. Hold the last letter.
                         setTimeout(() => {
-                            buttonElement.textContent = originalText; // Restore original text
-                            buttonElement.style.width = ''; // Restore original width behavior
+                            buttonElement.innerHTML = originalContent; // Restore original HTML content
+                            buttonElement.classList.remove('animating-hero-button');
+                            buttonElement.style.minWidth = '';
                             buttonElement.style.textAlign = '';
                             delete buttonElement.dataset.animating;
                             if (finalCallback && typeof finalCallback === 'function') {
                                 finalCallback();
                             }
-                        }, finalDisplayTime);
+                        }, holdLastLetterTime);
                     }
                 }
-                showNextLetter();
+
+                if (charSpans.length > 0) {
+                    revealStep(); // Start the animation
+                } else { // Should not happen if textToAnimate is not empty
+                    buttonElement.innerHTML = originalContent;
+                    buttonElement.classList.remove('animating-hero-button');
+                    delete buttonElement.dataset.animating;
+                    if (finalCallback) finalCallback();
+                }
             }
 
             if (heroExploreGearBtn) {
                 heroExploreGearBtn.addEventListener('click', function(event) {
                     event.preventDefault(); // Prevent default navigation
                     const destinationUrl = this.href;
+                    // The original text is "Explore the Gear", but animation shows "TRIUMIND"
                     animateButtonText(this, "TRIUMIND", () => {
                         window.location.href = destinationUrl;
                     });
