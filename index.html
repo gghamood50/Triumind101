@@ -1447,6 +1447,39 @@
         }
 
 
+        // --- Cart Checkout Logic (Refactored) ---
+        function executeCartCheckout() {
+            if (cartItems.length === 0) {
+                showToast('Your cart is empty.');
+                return;
+            }
+
+            console.log("Proceeding to Stripe Checkout with items:", cartItems);
+            showToast('Redirecting to secure payment processor...');
+
+            const newOrder = {
+                id: `ORD-STRIPE-${Date.now()}`,
+                timestamp: new Date().toISOString(),
+                items: [...cartItems],
+                totalAmount: cartItems.reduce((total, item) => total + (item.price * item.quantity), 0),
+                status: "Processing"
+            };
+            try {
+                let orders = JSON.parse(localStorage.getItem('triumindOrders')) || [];
+                orders.push(newOrder);
+                localStorage.setItem('triumindOrders', JSON.stringify(orders));
+            } catch (e) {
+                console.error("Error saving order to localStorage:", e);
+            }
+            setTimeout(() => {
+                cartItems = [];
+                saveCartToStorage();
+                renderCart();
+                closeCart();
+                showToast('Order placed (simulation)! Thank you.');
+            }, 1500);
+        }
+
         // --- DOMContentLoaded ---
         document.addEventListener('DOMContentLoaded', async () => {
             await initializeCurrency();
@@ -1483,37 +1516,16 @@
 
 
             if (cartCheckoutButton) {
-                cartCheckoutButton.addEventListener('click', () => {
-                    if (cartItems.length === 0) {
-                        showToast('Your cart is empty.');
-                        return;
-                    }
-
-                    console.log("Proceeding to Stripe Checkout with items:", cartItems);
-                    showToast('Redirecting to secure payment processor...');
-                    
-                    const newOrder = {
-                        id: `ORD-STRIPE-${Date.now()}`,
-                        timestamp: new Date().toISOString(),
-                        items: [...cartItems], 
-                        totalAmount: cartItems.reduce((total, item) => total + (item.price * item.quantity), 0),
-                        status: "Processing"
-                    };
-                    try {
-                        let orders = JSON.parse(localStorage.getItem('triumindOrders')) || [];
-                        orders.push(newOrder);
-                        localStorage.setItem('triumindOrders', JSON.stringify(orders));
-                    } catch (e) {
-                        console.error("Error saving order to localStorage:", e);
-                    }
-                    setTimeout(() => {
-                        cartItems = []; 
-                        saveCartToStorage(); 
-                        renderCart(); 
-                        closeCart();
-                        showToast('Order placed (simulation)! Thank you.');
-                    }, 1500);
-                });
+                // The primary click listener for the checkout button is now handled by
+                // the animation logic if the button has the 'triumind-animated-button' class.
+                // If the animation logic is not present or fails to initialize for this button,
+                // this direct listener can serve as a fallback.
+                // However, the plan is to make the animation call executeCartCheckout.
+                // So, this direct listener might become redundant if animation is always active.
+                // For now, let's keep it simple and assume animation will handle it.
+                // If animation is disabled or fails, this button might not work without a direct call.
+                // The `initializeAnimatedButtons` function adds its own click listener
+                // that calls `animateButtonInteraction`, which then should call `executeCartCheckout`.
             }
 
             // --- Event Listener for Storage Changes ---
@@ -1583,28 +1595,41 @@
                     buttonElement.appendChild(animatedTextContainer);
                 }
 
-                const rippleExpandTime = 400;
-                const brandTextAppearDelay = 200;
-                const brandTextAppearTime = 300;
-                const holdTime = 800;
-                const resolveTime = 400;
+                const rippleExpandTime = 400; // Duration of ripple expansion
+                const brandTextAppearDelay = 200; // Delay before "TRIUMIND" text starts appearing
+                const brandTextAppearTime = 300; // Duration of "TRIUMIND" text appearing
+
+                // Adjusted timings for responsiveness
+                const holdTime = 300; // How long the "TRIUMIND" text stays visible after full reveal
+                const resolveTime = 200; // Time for ripple to contract and original text to reappear
 
                 buttonElement.classList.add('is-animating-ripple');
+                // Calculate when the initial visual animation (ripple + TRIUMIND text) is fully visible
                 const timeToFullReveal = Math.max(rippleExpandTime, brandTextAppearDelay + brandTextAppearTime);
 
-                setTimeout(() => {
+                setTimeout(() => { // This timeout waits for the main visual animation to complete
+                    // After visual animation is complete, wait for 'holdTime'
                     setTimeout(() => {
-                        buttonElement.classList.remove('is-animating-ripple');
+                        buttonElement.classList.remove('is-animating-ripple'); // Start reversing the animation
+
+                        // After starting the reverse animation, wait for 'resolveTime' for it to finish
                         setTimeout(() => {
-                            delete buttonElement.dataset.animating;
-                            // Perform original action
-                            if (buttonElement.tagName === 'A' && buttonElement.href) {
-                                window.location.href = buttonElement.href;
-                            } else if (buttonElement.type === 'submit' && buttonElement.form) {
-                                buttonElement.form.submit();
+                            try {
+                                // Perform original action
+                                if (buttonElement.tagName === 'A' && buttonElement.href) {
+                                    window.location.href = buttonElement.href;
+                                } else if (buttonElement.type === 'submit' && buttonElement.form) {
+                                    buttonElement.form.submit();
+                                } else if (buttonElement.id === 'cart-checkout-button') {
+                                    executeCartCheckout();
+                                }
+                                // For other button types or JS-driven actions, add more conditions here
+                                // or reconsider if event.preventDefault() is always appropriate.
+                            } catch (e) {
+                                console.error("Error performing button action after animation:", e);
+                            } finally {
+                                delete buttonElement.dataset.animating;
                             }
-                            // For other button types or JS-driven actions, this might need more specific handling
-                            // or the original event listener would need to be structured differently.
                         }, resolveTime);
                     }, holdTime);
                 }, timeToFullReveal);
