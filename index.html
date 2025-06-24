@@ -333,28 +333,7 @@
             color: #e0e0e0;
         }
 
-        /* Hero Button Animation Styles */
-        .animating-hero-button {
-            position: relative;
-            overflow: hidden;
-            display: inline-block; /* Keep its block-like nature */
-            transition: width 0.1s ease-out; /* Smooth width changes if any */
-        }
-        .animating-hero-button .char-span {
-            display: inline-block;
-            opacity: 0;
-            transform: translateY(10px) scale(0.9);
-            transition: opacity 0.25s ease-out, transform 0.25s ease-out;
-            font-weight: 900; /* Bold like hero text */
-            font-family: 'Inter', sans-serif; /* Ensure consistent font */
-            min-width: 0.5em; /* Give letters some space */
-            text-align: center;
-        }
-        .animating-hero-button .char-span.visible {
-            opacity: 1;
-            transform: translateY(0px) scale(1);
-        }
-        /* End Hero Button Animation Styles */
+        /* CSS for .char-span removed as it's no longer used by the new JS animation approach. */
 
         @media (min-width: 768px) {
             #story-viewer-content {
@@ -1504,52 +1483,52 @@
                 if (!buttonElement || buttonElement.dataset.animating === 'true') return;
 
                 buttonElement.dataset.animating = 'true';
-                const originalContent = buttonElement.innerHTML; // Store full HTML for restoration
+                const originalText = buttonElement.textContent;
+                // Capture original computed styles that might be relevant if not using Tailwind classes directly
+                const originalStyles = window.getComputedStyle(buttonElement);
+                const originalFontWeight = originalStyles.fontWeight;
+                const originalFontFamily = originalStyles.fontFamily;
+                const originalDisplay = originalStyles.display;
+                const originalAlignItems = originalStyles.alignItems;
+                const originalJustifyContent = originalStyles.justifyContent;
+
+                // Get dimensions before changing text or styles
+                const originalWidth = buttonElement.offsetWidth + 'px';
+                const originalHeight = buttonElement.offsetHeight + 'px';
+
+                // Apply fixed dimensions and centering styles
+                buttonElement.style.width = originalWidth;
+                buttonElement.style.height = originalHeight;
+                buttonElement.style.display = 'inline-flex';
+                buttonElement.style.alignItems = 'center';
+                buttonElement.style.justifyContent = 'center';
+                buttonElement.style.fontWeight = '900'; // Make animating letters bold (font-black)
+                buttonElement.style.fontFamily = 'Inter, sans-serif'; // Ensure consistent font
+
                 const letters = textToAnimate.split('');
                 let currentLetterIndex = 0;
+                const letterDisplayTime = 300; // Slower: Time each letter is visible
+                const holdLastLetterTime = 500; // Hold the last letter 'D' or full word
 
-                const letterAppearDuration = 250; // Corresponds to CSS transition duration
-                const interLetterDelay = 150;   // Delay before the *next* letter starts appearing
-                                                // Total time per letter step = letterAppearDuration (for fade out) + interLetterDelay (for next to start)
-                                                // This might need some fine tuning. Let's try a simpler sequential display with hold.
-                const letterDisplayTime = 250; // Slower: Time each letter is visible
-                const holdLastLetterTime = 400; // Slower: Time to hold the last letter 'D'
-
-                const originalWidth = buttonElement.offsetWidth;
-                buttonElement.style.minWidth = `${originalWidth}px`; // Use min-width
-                buttonElement.style.textAlign = 'center';
-                buttonElement.classList.add('animating-hero-button');
-
-                buttonElement.innerHTML = ''; // Clear button for new spans
-
-                // Create spans for each letter
-                letters.forEach(letter => {
-                    const span = document.createElement('span');
-                    span.className = 'char-span'; // CSS will handle initial opacity:0, transform
-                    span.textContent = letter;
-                    buttonElement.appendChild(span);
-                });
-
-                const charSpans = Array.from(buttonElement.querySelectorAll('.char-span'));
-
-                function revealStep() {
-                    if (currentLetterIndex < charSpans.length) {
-                        if (currentLetterIndex > 0) {
-                            // Make previous letter quickly fade or just disappear if not using individual fades for out.
-                            // For simplicity, let's make previous letters non-visible instantly or rely on CSS to fade them if 'visible' is removed.
-                            // To show one letter at a time, hide previous.
-                             charSpans[currentLetterIndex - 1].classList.remove('visible');
-                        }
-                        charSpans[currentLetterIndex].classList.add('visible');
+                function showNextLetter() {
+                    if (currentLetterIndex < letters.length) {
+                        buttonElement.textContent = letters[currentLetterIndex];
                         currentLetterIndex++;
-                        setTimeout(revealStep, letterDisplayTime);
+                        setTimeout(showNextLetter, letterDisplayTime);
                     } else {
-                        // All letters have been made visible one by one. Hold the last letter.
+                        // Animation of letters TRIUMIND is complete.
+                        // Optionally, briefly show the full word "TRIUMIND"
+                        // buttonElement.textContent = textToAnimate;
                         setTimeout(() => {
-                            buttonElement.innerHTML = originalContent; // Restore original HTML content
-                            buttonElement.classList.remove('animating-hero-button');
-                            buttonElement.style.minWidth = '';
-                            buttonElement.style.textAlign = '';
+                            buttonElement.textContent = originalText;
+                            // Restore original styles
+                            buttonElement.style.width = '';
+                            buttonElement.style.height = '';
+                            buttonElement.style.display = originalDisplay;
+                            buttonElement.style.alignItems = originalAlignItems;
+                            buttonElement.style.justifyContent = originalJustifyContent;
+                            buttonElement.style.fontWeight = originalFontWeight;
+                            buttonElement.style.fontFamily = originalFontFamily;
                             delete buttonElement.dataset.animating;
                             if (finalCallback && typeof finalCallback === 'function') {
                                 finalCallback();
@@ -1557,15 +1536,7 @@
                         }, holdLastLetterTime);
                     }
                 }
-
-                if (charSpans.length > 0) {
-                    revealStep(); // Start the animation
-                } else { // Should not happen if textToAnimate is not empty
-                    buttonElement.innerHTML = originalContent;
-                    buttonElement.classList.remove('animating-hero-button');
-                    delete buttonElement.dataset.animating;
-                    if (finalCallback) finalCallback();
-                }
+                showNextLetter(); // Start the animation
             }
 
             if (heroExploreGearBtn) {
