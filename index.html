@@ -1480,12 +1480,124 @@
             }, 1500);
         }
 
+        // --- Generalized "Ink Bleed / Ripple Unveil" Animation ---
+
+        function animateButtonInteraction(buttonElement, event) {
+            if (buttonElement.classList.contains('is-animating-ripple') || buttonElement.dataset.animating === 'true') {
+                return; // Already animating
+            }
+            event.preventDefault(); // Prevent default action (navigation, form submit)
+            buttonElement.dataset.animating = 'true';
+
+            // Ensure original text is wrapped
+            let originalTextSpan = buttonElement.querySelector('.original-button-text');
+            if (!originalTextSpan) {
+                const currentText = buttonElement.innerHTML; // Could be just text or other HTML
+                buttonElement.innerHTML = ''; // Clear it
+                originalTextSpan = document.createElement('span');
+                originalTextSpan.className = 'original-button-text';
+                originalTextSpan.innerHTML = currentText; // Use innerHTML to preserve any existing HTML
+                buttonElement.appendChild(originalTextSpan);
+            }
+
+            // Ensure animated brand text container exists or create it
+            let animatedTextContainer = buttonElement.querySelector('.animated-brand-text-container');
+            if (!animatedTextContainer) {
+                animatedTextContainer = document.createElement('span');
+                animatedTextContainer.className = 'animated-brand-text-container';
+                animatedTextContainer.textContent = 'TRIUMIND';
+                buttonElement.appendChild(animatedTextContainer);
+            }
+
+            const rippleExpandTime = 400; // Duration of ripple expansion
+            const brandTextAppearDelay = 200; // Delay before "TRIUMIND" text starts appearing
+            const brandTextAppearTime = 300; // Duration of "TRIUMIND" text appearing
+
+            // Adjusted timings for responsiveness
+            const holdTime = 300; // How long the "TRIUMIND" text stays visible after full reveal
+            const resolveTime = 200; // Time for ripple to contract and original text to reappear
+
+            buttonElement.classList.add('is-animating-ripple');
+            // Calculate when the initial visual animation (ripple + TRIUMIND text) is fully visible
+            const timeToFullReveal = Math.max(rippleExpandTime, brandTextAppearDelay + brandTextAppearTime);
+
+            setTimeout(() => { // This timeout waits for the main visual animation to complete
+                // After visual animation is complete, wait for 'holdTime'
+                setTimeout(() => {
+                    buttonElement.classList.remove('is-animating-ripple'); // Start reversing the animation
+
+                    // After starting the reverse animation, wait for 'resolveTime' for it to finish
+                    setTimeout(() => {
+                        try {
+                            // Perform original action
+                            if (buttonElement.tagName === 'A' && buttonElement.href) {
+                                window.location.href = buttonElement.href;
+                            } else if (buttonElement.type === 'submit' && buttonElement.form) {
+                                buttonElement.form.submit();
+                            } else if (buttonElement.id === 'cart-checkout-button') {
+                                executeCartCheckout();
+                            }
+                            // For other button types or JS-driven actions, add more conditions here
+                            // or reconsider if event.preventDefault() is always appropriate.
+                        } catch (e) {
+                            console.error("Error performing button action after animation:", e);
+                        } finally {
+                            delete buttonElement.dataset.animating;
+                        }
+                    }, resolveTime);
+                }, holdTime);
+            }, timeToFullReveal);
+        }
+
+        function initializeAnimatedButtons() {
+            const buttonsToAnimate = document.querySelectorAll('.triumind-animated-button');
+            buttonsToAnimate.forEach(button => {
+                // Check if this button has already been initialized for animation
+                if (button.dataset.animationInitialized === 'true') {
+                    return;
+                }
+
+                let originalTextSpan = button.querySelector('.original-button-text');
+                if (!originalTextSpan) {
+                    // If there's no span, take all direct child text nodes and simple inline elements
+                    // and wrap them. This is safer than just using innerHTML directly if there are other complex children.
+                    const contentToWrap = document.createDocumentFragment();
+                    Array.from(button.childNodes).forEach(child => {
+                        // Only wrap if it's not the animated-brand-text-container itself
+                        if (!child.classList || !child.classList.contains('animated-brand-text-container')) {
+                            contentToWrap.appendChild(child.cloneNode(true));
+                        }
+                    });
+
+                    button.innerHTML = ''; // Clear existing content before appending wrapped and new elements
+
+                    originalTextSpan = document.createElement('span');
+                    originalTextSpan.className = 'original-button-text';
+                    originalTextSpan.appendChild(contentToWrap);
+                    button.appendChild(originalTextSpan);
+                }
+
+                let animatedTextContainer = button.querySelector('.animated-brand-text-container');
+                if (!animatedTextContainer) {
+                    animatedTextContainer = document.createElement('span');
+                    animatedTextContainer.className = 'animated-brand-text-container';
+                    animatedTextContainer.textContent = 'TRIUMIND';
+                    button.appendChild(animatedTextContainer);
+                }
+
+                button.addEventListener('click', function(event) {
+                    animateButtonInteraction(this, event);
+                });
+                button.dataset.animationInitialized = 'true'; // Mark as initialized
+            });
+        }
+
         // --- DOMContentLoaded ---
         document.addEventListener('DOMContentLoaded', async () => {
-            await initializeCurrency();
+            await initializeCurrency(); // Contains renderProducts -> initializeAnimatedButtons
             
             applySectionVisibility(); 
-            startMainSiteCountdown(); 
+            startMainSiteCountdown(); // Contains displayDropProducts -> initializeAnimatedButtons
             renderStories(); 
             renderFeaturedReviews();
             loadCartFromStorage();
@@ -1518,15 +1630,11 @@
             if (cartCheckoutButton) {
                 // The primary click listener for the checkout button is now handled by
                 // the animation logic if the button has the 'triumind-animated-button' class.
-                // If the animation logic is not present or fails to initialize for this button,
-                // this direct listener can serve as a fallback.
-                // However, the plan is to make the animation call executeCartCheckout.
-                // So, this direct listener might become redundant if animation is always active.
-                // For now, let's keep it simple and assume animation will handle it.
-                // If animation is disabled or fails, this button might not work without a direct call.
                 // The `initializeAnimatedButtons` function adds its own click listener
                 // that calls `animateButtonInteraction`, which then should call `executeCartCheckout`.
             }
+
+            initializeAnimatedButtons(); // Call on initial load for any static buttons not covered by above rendering functions.
 
             // --- Event Listener for Storage Changes ---
             window.addEventListener('storage', (event) => {
