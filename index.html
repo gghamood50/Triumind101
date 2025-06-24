@@ -407,7 +407,7 @@
                 <p class="mt-4 text-lg md:text-xl text-gray-400 max-w-2xl mx-auto fade-in">
                     It's your climb. Your pace. Your mindset. We just make the gear for it. <span class="font-semibold text-white">Welcome to the collective.</span>
                 </p>
-                <a href="#gear" class="mt-8 inline-block bg-white text-black px-8 py-3 rounded-lg font-semibold uppercase tracking-wide btn-hover-effect fade-in" style="transition-delay: 0.2s;">Explore the Gear</a>
+                <a href="#gear" id="hero-explore-gear-btn" class="mt-8 inline-block bg-white text-black px-8 py-3 rounded-lg font-semibold uppercase tracking-wide btn-hover-effect fade-in" style="transition-delay: 0.2s;">Explore the Gear</a>
             </div>
             <div class="absolute bottom-10 left-1/2 transform -translate-x-1/2 z-10">
                 <svg class="w-6 h-6 text-gray-500 animate-bounce" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"></path></svg>
@@ -1472,6 +1472,56 @@
                     if (cartModal && cartModal.classList.contains('open')) closeCart();
                 }
             });
+
+            // --- Hero Button Animation ---
+            const heroExploreGearBtn = document.getElementById('hero-explore-gear-btn');
+
+            function animateButtonText(buttonElement, textToAnimate, finalCallback) {
+                if (!buttonElement || buttonElement.dataset.animating === 'true') return;
+
+                buttonElement.dataset.animating = 'true';
+                const originalText = buttonElement.textContent;
+                const letters = textToAnimate.split('');
+                let currentLetterIndex = 0;
+                const letterInterval = 120; // ms per letter
+                const finalDisplayTime = 300; // ms to show the full "TRIUMIND" or last letter
+
+                // Fix button width to prevent jitter
+                const originalWidth = buttonElement.offsetWidth;
+                buttonElement.style.width = `${originalWidth}px`;
+                buttonElement.style.textAlign = 'center'; // Ensure text is centered
+
+                function showNextLetter() {
+                    if (currentLetterIndex < letters.length) {
+                        buttonElement.textContent = letters[currentLetterIndex];
+                        currentLetterIndex++;
+                        setTimeout(showNextLetter, letterInterval);
+                    } else {
+                        // Animation finished (all letters shown)
+                        setTimeout(() => {
+                            buttonElement.textContent = originalText; // Restore original text
+                            buttonElement.style.width = ''; // Restore original width behavior
+                            buttonElement.style.textAlign = '';
+                            delete buttonElement.dataset.animating;
+                            if (finalCallback && typeof finalCallback === 'function') {
+                                finalCallback();
+                            }
+                        }, finalDisplayTime);
+                    }
+                }
+                showNextLetter();
+            }
+
+            if (heroExploreGearBtn) {
+                heroExploreGearBtn.addEventListener('click', function(event) {
+                    event.preventDefault(); // Prevent default navigation
+                    const destinationUrl = this.href;
+                    animateButtonText(this, "TRIUMIND", () => {
+                        window.location.href = destinationUrl;
+                    });
+                });
+            }
+
         });
     </script>
 </body>
