@@ -510,7 +510,9 @@
                     <p>Check back soon for the latest drops.</p>
                 </div>
                 <div class="text-center mt-16 fade-in" style="transition-delay: 0.5s;">
-                     <a href="AllGear.html" class="bg-white text-black px-8 py-3 rounded-lg font-semibold uppercase tracking-wide btn-hover-effect">View All Gear (Archive)</a>
+                     <a href="AllGear.html" class="triumind-animated-button bg-white text-black px-8 py-3 rounded-lg font-semibold uppercase tracking-wide btn-hover-effect">
+                        <span class="original-button-text">View All Gear (Archive)</span>
+                    </a>
                 </div>
             </div>
         </section>
@@ -1049,7 +1051,9 @@
                     <div class="product-card-shared-content">
                         <${titleTag} class="text-xl font-semibold mb-2">${product.name || 'Unnamed Product'}</${titleTag}>
                         <p class="price">${formatPrice(parseFloat(product.price || 0))}</p>
-                        <a href="Gear.html?productId=${product.id}" class="view-product-link btn-hover-effect">View Details</a>
+                        <a href="Gear.html?productId=${product.id}" class="triumind-animated-button view-product-link btn-hover-effect">
+                            <span class="original-button-text">View Details</span>
+                        </a>
                     </div>
                 </div>
             `;
@@ -1084,6 +1088,7 @@
                 targetGridElement.innerHTML = cardHTML;
                 targetGridElement.classList.remove('hidden');
                 observeNewFadeInElements(targetGridElement);
+                initializeAnimatedButtons(); // Initialize after new buttons are added
 
             } else {
                  targetGridElement.innerHTML = '<p class="text-gray-400 col-span-full text-center">The new gear is materializing... Check back momentarily!</p>';
@@ -1327,6 +1332,7 @@
                 });
                 productGrid.innerHTML = cardHTML;
                 observeNewFadeInElements(productGrid);
+                initializeAnimatedButtons(); // Initialize after new buttons are added
             }
         }
 
