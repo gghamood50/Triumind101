@@ -333,32 +333,34 @@
             color: #e0e0e0;
         }
 
-        /* Ink Bleed / Ripple Unveil Animation Styles */
-        #hero-explore-gear-btn {
-            position: relative; /* For pseudo-elements and text positioning */
-            overflow: hidden;   /* Contain the ripple */
-            /* transition: color 0.2s ease-out, background-color 0.2s ease-out; */ /* Base transition for button */
+        /* Ink Bleed / Ripple Unveil Animation Styles - Generalized */
+        .triumind-animated-button { /* Changed from #hero-explore-gear-btn */
+            position: relative;
+            overflow: hidden;
         }
 
-        #hero-explore-gear-btn .original-button-text {
-            display: inline-block; /* Allow transform and transition */
+        .triumind-animated-button .original-button-text {
+            display: inline-block;
             transition: opacity 0.25s ease-out, transform 0.25s ease-out;
+            /* Ensure it's above the pseudo-element if z-index isn't enough or if pseudo is on parent */
+            position: relative;
+            z-index: 2;
         }
 
-        #hero-explore-gear-btn.is-animating-ripple .original-button-text {
+        .triumind-animated-button.is-animating-ripple .original-button-text {
             opacity: 0;
-            transform: scale(0.8); /* Optional: shrink text as it fades */
+            transform: scale(0.8);
         }
 
         /* The ripple pseudo-element */
-        #hero-explore-gear-btn::after {
+        .triumind-animated-button::after {
             content: '';
             position: absolute;
             top: 50%;
             left: 50%;
             width: 0;
             height: 0;
-            background-color: rgba(139, 92, 246, 0.85); /* Triumind Purple, slightly transparent */
+            background-color: rgba(139, 92, 246, 0.85);
             border-radius: 50%;
             transform: translate(-50%, -50%) scale(0);
             opacity: 0;
@@ -366,33 +368,33 @@
                         height 0.4s cubic-bezier(0.7, 0, 0.3, 1),
                         opacity 0.2s ease-out,
                         transform 0.4s cubic-bezier(0.7, 0, 0.3, 1);
-            z-index: 0; /* Behind the text */
+            z-index: 0;
         }
 
-        #hero-explore-gear-btn.is-animating-ripple::after {
-            width: 250%; /* Make it large enough to cover the button, adjust as needed */
+        .triumind-animated-button.is-animating-ripple::after {
+            width: 250%;
             height: 250%;
             opacity: 1;
             transform: translate(-50%, -50%) scale(1);
         }
 
         /* Animated text that appears */
-        #hero-explore-gear-btn .animated-brand-text-container {
+        .triumind-animated-button .animated-brand-text-container {
             position: absolute;
             top: 0; left: 0; right: 0; bottom: 0;
             display: flex;
             align-items: center;
             justify-content: center;
-            opacity: 0; /* Initially hidden */
-            font-weight: 900; /* font-black */
+            opacity: 0;
+            font-weight: 900;
             font-family: 'Inter', sans-serif;
-            color: white; /* Or contrast with ripple */
-            transition: opacity 0.3s ease-in 0.2s; /* Fade in after ripple starts */
-            z-index: 1; /* Above the ripple */
-            pointer-events: none; /* Don't interfere with button clicks */
+            color: white;
+            transition: opacity 0.3s ease-in 0.2s;
+            z-index: 1; /* Above the ripple, but below original text if it's z-index 2 */
+            pointer-events: none;
         }
 
-        #hero-explore-gear-btn.is-animating-ripple .animated-brand-text-container {
+        .triumind-animated-button.is-animating-ripple .animated-brand-text-container {
             opacity: 1;
         }
         /* End Ink Bleed / Ripple Unveil Animation Styles */
@@ -472,7 +474,7 @@
                 <p class="mt-4 text-lg md:text-xl text-gray-400 max-w-2xl mx-auto fade-in">
                     It's your climb. Your pace. Your mindset. We just make the gear for it. <span class="font-semibold text-white">Welcome to the collective.</span>
                 </p>
-                <a href="#gear" id="hero-explore-gear-btn" class="mt-8 inline-block bg-white text-black px-8 py-3 rounded-lg font-semibold uppercase tracking-wide btn-hover-effect fade-in" style="transition-delay: 0.2s;">
+                <a href="#gear" id="hero-explore-gear-btn" class="triumind-animated-button mt-8 inline-block bg-white text-black px-8 py-3 rounded-lg font-semibold uppercase tracking-wide btn-hover-effect fade-in" style="transition-delay: 0.2s;">
                     <span class="original-button-text">Explore the Gear</span>
                 </a>
             </div>
@@ -542,7 +544,9 @@
                 <form id="newsletter-form" class="max-w-md mx-auto fade-in" style="transition-delay: 0.2s;">
                     <div class="flex flex-col sm:flex-row gap-4">
                         <input id="newsletter-email" type="email" placeholder="Your email..." required class="flex-grow px-5 py-3 bg-gray-800 border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-600 focus:border-transparent text-white placeholder-gray-500 transition duration-200">
-                        <button type="submit" class="bg-purple-600 hover:bg-purple-700 text-white px-8 py-3 rounded-lg font-semibold uppercase tracking-wide btn-hover-effect transition duration-200">Join</button>
+                        <button type="submit" class="triumind-animated-button bg-purple-600 hover:bg-purple-700 text-white px-8 py-3 rounded-lg font-semibold uppercase tracking-wide btn-hover-effect transition duration-200">
+                            <span class="original-button-text">Join</span>
+                        </button>
                     </div>
                 </form>
             </div>
@@ -555,7 +559,9 @@
                 <form id="contact-form" class="max-w-lg mx-auto fade-in" style="transition-delay: 0.2s;">
                     <div class="mb-4"><input id="contact-email" type="email" placeholder="Your Email" required class="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-600 focus:border-transparent text-white placeholder-gray-500"></div>
                     <div class="mb-4"><textarea id="contact-message" placeholder="Your Message" rows="4" required class="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-600 focus:border-transparent text-white placeholder-gray-500"></textarea></div>
-                    <button type="submit" class="bg-white text-black px-8 py-3 rounded-lg font-semibold uppercase tracking-wide btn-hover-effect w-full sm:w-auto">Send It</button>
+                    <button type="submit" class="triumind-animated-button bg-white text-black px-8 py-3 rounded-lg font-semibold uppercase tracking-wide btn-hover-effect w-full sm:w-auto">
+                        <span class="original-button-text">Send It</span>
+                    </button>
                 </form>
             </div>
         </section>
@@ -603,7 +609,9 @@
         <div id="cart-body" class="cart-body">
         </div>
         <div class="cart-footer">
-            <button id="cart-checkout-button" class="cart-checkout-button btn-hover-effect">Proceed to Payment</button>
+            <button id="cart-checkout-button" class="triumind-animated-button cart-checkout-button btn-hover-effect">
+                <span class="original-button-text">Proceed to Payment</span>
+            </button>
         </div>
     </div>
 
@@ -1540,60 +1548,91 @@
                 }
             });
 
-            // --- Hero Button "Ink Bleed / Ripple Unveil" Animation ---
-            const heroExploreGearBtn = document.getElementById('hero-explore-gear-btn');
+            // --- Generalized "Ink Bleed / Ripple Unveil" Animation ---
 
-            if (heroExploreGearBtn) {
-                // Create the span for animated brand text and append it once
-                const animatedBrandTextContainer = document.createElement('span');
-                animatedBrandTextContainer.className = 'animated-brand-text-container';
-                animatedBrandTextContainer.textContent = 'TRIUMIND';
-                heroExploreGearBtn.appendChild(animatedBrandTextContainer);
+            function animateButtonInteraction(buttonElement, event) {
+                if (buttonElement.classList.contains('is-animating-ripple') || buttonElement.dataset.animating === 'true') {
+                    return; // Already animating
+                }
+                event.preventDefault(); // Prevent default action (navigation, form submit)
+                buttonElement.dataset.animating = 'true';
 
-                heroExploreGearBtn.addEventListener('click', function(event) {
-                    event.preventDefault();
-                    const button = this; // `this` is heroExploreGearBtn
-                    const destinationUrl = button.href;
+                // Ensure original text is wrapped
+                let originalTextSpan = buttonElement.querySelector('.original-button-text');
+                if (!originalTextSpan) {
+                    const currentText = buttonElement.innerHTML; // Could be just text or other HTML
+                    buttonElement.innerHTML = ''; // Clear it
+                    originalTextSpan = document.createElement('span');
+                    originalTextSpan.className = 'original-button-text';
+                    originalTextSpan.innerHTML = currentText; // Use innerHTML to preserve any existing HTML
+                    buttonElement.appendChild(originalTextSpan);
+                }
 
-                    if (button.classList.contains('is-animating-ripple') || button.dataset.animating === 'true') {
-                        return; // Already animating
-                    }
-                    button.dataset.animating = 'true';
+                // Ensure animated brand text container exists or create it
+                let animatedTextContainer = buttonElement.querySelector('.animated-brand-text-container');
+                if (!animatedTextContainer) {
+                    animatedTextContainer = document.createElement('span');
+                    animatedTextContainer.className = 'animated-brand-text-container';
+                    animatedTextContainer.textContent = 'TRIUMIND';
+                    buttonElement.appendChild(animatedTextContainer);
+                }
 
-                    // Durations (can be adjusted)
-                    const rippleExpandTime = 400;    // Matches CSS: width, height, transform
-                    const brandTextAppearDelay = 200; // Matches CSS: transition-delay for opacity
-                    const brandTextAppearTime = 300;  // Matches CSS: transition-duration for opacity
-                    const holdTime = 800;            // How long to show "TRIUMIND"
-                    const resolveTime = 400;         // Time for ripple to shrink & brand text to fade
+                const rippleExpandTime = 400;
+                const brandTextAppearDelay = 200;
+                const brandTextAppearTime = 300;
+                const holdTime = 800;
+                const resolveTime = 400;
 
-                    // 1. Start animation: Add class to expand ripple and fade out original text
-                    button.classList.add('is-animating-ripple');
+                buttonElement.classList.add('is-animating-ripple');
+                const timeToFullReveal = Math.max(rippleExpandTime, brandTextAppearDelay + brandTextAppearTime);
 
-                    // 2. After ripple and brand text are fully visible (rippleExpandTime or brandTextAppearDelay + brandTextAppearTime)
-                    //    Let's use the longer of the two for the "hold" phase to start
-                    const timeToFullReveal = Math.max(rippleExpandTime, brandTextAppearDelay + brandTextAppearTime);
-
+                setTimeout(() => {
                     setTimeout(() => {
-                        // 3. Hold "TRIUMIND" state
+                        buttonElement.classList.remove('is-animating-ripple');
                         setTimeout(() => {
-                            // 4. Resolve animation: Remove class to shrink ripple, fade out brand text
-                            //    (original text will reappear due to CSS if .is-animating-ripple is removed)
-                            button.classList.remove('is-animating-ripple');
+                            delete buttonElement.dataset.animating;
+                            // Perform original action
+                            if (buttonElement.tagName === 'A' && buttonElement.href) {
+                                window.location.href = buttonElement.href;
+                            } else if (buttonElement.type === 'submit' && buttonElement.form) {
+                                buttonElement.form.submit();
+                            }
+                            // For other button types or JS-driven actions, this might need more specific handling
+                            // or the original event listener would need to be structured differently.
+                        }, resolveTime);
+                    }, holdTime);
+                }, timeToFullReveal);
+            }
 
-                            // 5. Navigate after resolve animation finishes
-                            //    Need to wait for ripple to shrink and original text to reappear.
-                            //    The opacity transition for original-button-text is 0.25s.
-                            //    The ripple shrink is 0.4s.
-                            setTimeout(() => {
-                                delete button.dataset.animating;
-                                window.location.href = destinationUrl;
-                            }, resolveTime); // Wait for resolve transitions
+            function initializeAnimatedButtons() {
+                const buttonsToAnimate = document.querySelectorAll('.triumind-animated-button');
+                buttonsToAnimate.forEach(button => {
+                    // Pre-emptively ensure structure for buttons that might not have it
+                    let originalTextSpan = button.querySelector('.original-button-text');
+                    if (!originalTextSpan) {
+                        const currentText = button.innerHTML;
+                        button.innerHTML = '';
+                        originalTextSpan = document.createElement('span');
+                        originalTextSpan.className = 'original-button-text';
+                        originalTextSpan.innerHTML = currentText;
+                        button.appendChild(originalTextSpan);
+                    }
+                    let animatedTextContainer = button.querySelector('.animated-brand-text-container');
+                    if (!animatedTextContainer) {
+                        animatedTextContainer = document.createElement('span');
+                        animatedTextContainer.className = 'animated-brand-text-container';
+                        animatedTextContainer.textContent = 'TRIUMIND';
+                        button.appendChild(animatedTextContainer);
+                    }
 
-                        }, holdTime);
-                    }, timeToFullReveal);
+                    button.addEventListener('click', function(event) {
+                        animateButtonInteraction(this, event);
+                    });
                 });
             }
+
+            initializeAnimatedButtons(); // Call on initial load for index.html
+
         });
     </script>
 </body>

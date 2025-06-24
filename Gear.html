@@ -226,6 +226,70 @@
         .size-guide-table td {
             color: #b0b0c0;
         }
+
+        /* Ink Bleed / Ripple Unveil Animation Styles - Generalized */
+        .triumind-animated-button {
+            position: relative;
+            overflow: hidden;
+        }
+
+        .triumind-animated-button .original-button-text {
+            display: inline-block;
+            transition: opacity 0.25s ease-out, transform 0.25s ease-out;
+            position: relative;
+            z-index: 2;
+        }
+
+        .triumind-animated-button.is-animating-ripple .original-button-text {
+            opacity: 0;
+            transform: scale(0.8);
+        }
+
+        .triumind-animated-button::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            background-color: rgba(139, 92, 246, 0.85);
+            border-radius: 50%;
+            transform: translate(-50%, -50%) scale(0);
+            opacity: 0;
+            transition: width 0.4s cubic-bezier(0.7, 0, 0.3, 1),
+                        height 0.4s cubic-bezier(0.7, 0, 0.3, 1),
+                        opacity 0.2s ease-out,
+                        transform 0.4s cubic-bezier(0.7, 0, 0.3, 1);
+            z-index: 0;
+        }
+
+        .triumind-animated-button.is-animating-ripple::after {
+            width: 250%;
+            height: 250%;
+            opacity: 1;
+            transform: translate(-50%, -50%) scale(1);
+        }
+
+        .triumind-animated-button .animated-brand-text-container {
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            font-weight: 900;
+            font-family: 'Inter', sans-serif;
+            color: white;
+            transition: opacity 0.3s ease-in 0.2s;
+            z-index: 1;
+            pointer-events: none;
+        }
+
+        .triumind-animated-button.is-animating-ripple .animated-brand-text-container {
+            opacity: 1;
+        }
+        /* End Ink Bleed / Ripple Unveil Animation Styles */
+
     </style>
 </head>
 <body class="pt-0">
@@ -297,7 +361,9 @@
 
                     <!-- Action Buttons -->
                     <div class="grid grid-cols-1 gap-4">
-                        <button id="add-to-cart-btn" class="w-full bg-purple-600 hover:bg-purple-700 border border-transparent rounded-md py-3 px-8 flex items-center justify-center text-base font-medium text-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-900 focus:ring-purple-500 btn-hover-effect">Add to cart</button>
+                        <button id="add-to-cart-btn" class="triumind-animated-button w-full bg-purple-600 hover:bg-purple-700 border border-transparent rounded-md py-3 px-8 flex items-center justify-center text-base font-medium text-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-900 focus:ring-purple-500 btn-hover-effect">
+                            <span class="original-button-text">Add to cart</span>
+                        </button>
                     </div>
 
                     <!-- Description -->
@@ -337,7 +403,9 @@
                             <textarea id="review-text" name="review-text" rows="4" required class="mt-1 block w-full bg-gray-800 border border-gray-700 rounded-md py-2 px-3 text-white focus:outline-none focus:ring-purple-500 focus:border-purple-500 sm:text-sm"></textarea>
                         </div>
                         <div class="text-right">
-                            <button type="submit" class="bg-purple-600 hover:bg-purple-700 text-white font-medium py-2 px-4 rounded-md btn-hover-effect">Submit Review</button>
+                            <button type="submit" class="triumind-animated-button bg-purple-600 hover:bg-purple-700 text-white font-medium py-2 px-4 rounded-md btn-hover-effect">
+                                <span class="original-button-text">Submit Review</span>
+                            </button>
                         </div>
                     </form>
                 </div>
@@ -379,7 +447,9 @@
                        class="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-600 focus:border-transparent text-white placeholder-gray-500 transition duration-200"
                        placeholder="your.email@example.com">
             </div>
-            <button id="cart-checkout-button" class="cart-checkout-button btn-hover-effect hidden">Complete Payment</button>
+            <button id="cart-checkout-button" class="triumind-animated-button cart-checkout-button btn-hover-effect hidden">
+                <span class="original-button-text">Complete Payment</span>
+            </button>
         </div>
     </div>
     <div id="toast-notification" class="toast-notification">Item added to cart!</div>
@@ -1060,6 +1130,83 @@
                     if (sizeGuideModal && sizeGuideModal.classList.contains('open')) closeSizeGuide();
                 }
             });
+
+            // --- Generalized "Ink Bleed / Ripple Unveil" Animation ---
+            function animateButtonInteraction(buttonElement, event) {
+                if (buttonElement.classList.contains('is-animating-ripple') || buttonElement.dataset.animating === 'true') {
+                    return;
+                }
+                event.preventDefault();
+                buttonElement.dataset.animating = 'true';
+
+                let originalTextSpan = buttonElement.querySelector('.original-button-text');
+                if (!originalTextSpan) {
+                    const currentText = buttonElement.innerHTML;
+                    buttonElement.innerHTML = '';
+                    originalTextSpan = document.createElement('span');
+                    originalTextSpan.className = 'original-button-text';
+                    originalTextSpan.innerHTML = currentText;
+                    buttonElement.appendChild(originalTextSpan);
+                }
+
+                let animatedTextContainer = buttonElement.querySelector('.animated-brand-text-container');
+                if (!animatedTextContainer) {
+                    animatedTextContainer = document.createElement('span');
+                    animatedTextContainer.className = 'animated-brand-text-container';
+                    animatedTextContainer.textContent = 'TRIUMIND';
+                    buttonElement.appendChild(animatedTextContainer);
+                }
+
+                const rippleExpandTime = 400;
+                const brandTextAppearDelay = 200;
+                const brandTextAppearTime = 300;
+                const holdTime = 800;
+                const resolveTime = 400;
+
+                buttonElement.classList.add('is-animating-ripple');
+                const timeToFullReveal = Math.max(rippleExpandTime, brandTextAppearDelay + brandTextAppearTime);
+
+                setTimeout(() => {
+                    setTimeout(() => {
+                        buttonElement.classList.remove('is-animating-ripple');
+                        setTimeout(() => {
+                            delete buttonElement.dataset.animating;
+                            if (buttonElement.tagName === 'A' && buttonElement.href) {
+                                window.location.href = buttonElement.href;
+                            } else if (buttonElement.type === 'submit' && buttonElement.form) {
+                                buttonElement.form.submit();
+                            }
+                        }, resolveTime);
+                    }, holdTime);
+                }, timeToFullReveal);
+            }
+
+            function initializeAnimatedButtons() {
+                const buttonsToAnimate = document.querySelectorAll('.triumind-animated-button');
+                buttonsToAnimate.forEach(button => {
+                    let originalTextSpan = button.querySelector('.original-button-text');
+                    if (!originalTextSpan) {
+                        const currentText = button.innerHTML;
+                        button.innerHTML = '';
+                        originalTextSpan = document.createElement('span');
+                        originalTextSpan.className = 'original-button-text';
+                        originalTextSpan.innerHTML = currentText;
+                        button.appendChild(originalTextSpan);
+                    }
+                    let animatedTextContainer = button.querySelector('.animated-brand-text-container');
+                    if (!animatedTextContainer) {
+                        animatedTextContainer = document.createElement('span');
+                        animatedTextContainer.className = 'animated-brand-text-container';
+                        animatedTextContainer.textContent = 'TRIUMIND';
+                        button.appendChild(animatedTextContainer);
+                    }
+
+                    button.addEventListener('click', function(event) {
+                        animateButtonInteraction(this, event);
+                    });
+                });
+            }
+            initializeAnimatedButtons(); // Initialize for Gear.html
         });
     </script>
 </body>
