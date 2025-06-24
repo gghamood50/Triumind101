@@ -722,15 +722,26 @@
             function initializeAnimatedButtons() {
                 const buttonsToAnimate = document.querySelectorAll('.triumind-animated-button');
                 buttonsToAnimate.forEach(button => {
+                    // Check if this button has already been initialized for animation
+                    if (button.dataset.animationInitialized === 'true') {
+                        return;
+                    }
+
                     let originalTextSpan = button.querySelector('.original-button-text');
                     if (!originalTextSpan) {
-                        const currentText = button.innerHTML;
+                        const contentToWrap = document.createDocumentFragment();
+                        Array.from(button.childNodes).forEach(child => {
+                            if (!child.classList || !child.classList.contains('animated-brand-text-container')) {
+                                contentToWrap.appendChild(child.cloneNode(true));
+                            }
+                        });
                         button.innerHTML = '';
                         originalTextSpan = document.createElement('span');
                         originalTextSpan.className = 'original-button-text';
-                        originalTextSpan.innerHTML = currentText;
+                        originalTextSpan.appendChild(contentToWrap);
                         button.appendChild(originalTextSpan);
                     }
+
                     let animatedTextContainer = button.querySelector('.animated-brand-text-container');
                     if (!animatedTextContainer) {
                         animatedTextContainer = document.createElement('span');
@@ -742,6 +753,7 @@
                     button.addEventListener('click', function(event) {
                         animateButtonInteraction(this, event);
                     });
+                    button.dataset.animationInitialized = 'true';
                 });
             }
             initializeAnimatedButtons(); // Initialize for AllGear.html
